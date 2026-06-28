@@ -1,114 +1,74 @@
-# AICOS Prototype
+# AICOS
 
-AICOS is an AI-powered chief of staff prototype for leaders who manage teams, projects, meetings, and follow-through. The prototype demonstrates how AICOS can turn objectives into roadmaps, prepare leaders for meetings, draft follow-ups for approval, and flag uncertainty before it draws conclusions.
+AICOS is an AI chief of staff that does work, not just tracks it: it turns objectives into roadmaps, prepares a leader's week, and drafts the follow-through. The product thesis is that useful AI for leaders needs a visible trust spine: draft, don't send; show confidence; name the gaps; respect the walls.
 
-## Prototype URL
+## For Evaluators
 
-Production URL: https://aicos-prototype.vercel.app
+Open the deployed URL, choose one of the three workspaces, and take the guided tour. No setup, account, environment variable, or real data is required. The intended first run is:
 
-For local review:
+1. Sign in by choosing Claudia, Alfredo, or Alex.
+2. Follow the 5-step tour.
+3. Read the weekly briefing.
+4. Approve a draft.
+5. Generate a roadmap from your own objective.
+6. Request access from a blind spot or off-limits source.
 
-```bash
-pnpm install
-pnpm dev
-```
+## What Is Real, Simulated, And Assumed
 
-Then open the local URL printed by Vite.
+| Area | Status | Notes |
+|---|---|---|
+| Product workflow | Real prototype UI | Workspace selection, guided tour, briefing, draft approval, roadmap generation, chat, settings, help, and request-access flows are interactive. |
+| Data | Simulated | All workspace content is curated, pre-written demo content from `docs/CONTENT.md`. No real AES or user data is used. |
+| Integrations | Assumed placeholders | Slack, Teams, Jira, Microsoft Loop, Power BI, Calendar, Email, OKR tracker, and shared docs are represented as simulated connected sources because the real evaluator stack is unknown. |
+| Authentication | Simulated | Choosing a workspace is persona selection, not real auth. |
+| Sending messages | Simulated | AICOS drafts actions and confirms approval, but never sends anything. |
+| Access requests | Simulated | Requests route to a simulated AICOS account manager and confirm locally. |
+| Default AI | Simulated | The app works offline with curated replies and a deterministic client-side roadmap generator. |
+| Optional live AI | Bring your own key | Evaluators may paste their own Anthropic key in Settings to try live objective/chat generation. This is optional and never required. |
 
-## How To Navigate The Demo
+## Bring Your Own AI Model
 
-1. Use the **Demo role** selector in the top right to switch between the three seeded interview personas:
-   - Alex Lopez: Digital Director, 7-person team.
-   - Claudia Nep: Sr. Director, 22-person team.
-   - Alfredo Ordonez: VP, International Business, 7 direct reports.
-2. Start on **Leadership Briefing** to see weekly priorities, risks, stale updates, and recommended next moves.
-3. Click **Generate roadmap** to see AICOS convert an objective into milestones, owners, and next actions.
-4. Click **Draft nudges** to see follow-up messages. AICOS only drafts; use **Approve draft** and **Send approved** to simulate human approval.
-5. Click **Prep 1:1** to generate a meeting brief with suggested questions and open loops.
-6. Open **Access & Context** to see what AICOS can see, what is walled off, and where it needs confirmation.
+The deployed app is complete without live AI. To try live generation, open **Settings → Bring your own AI model** and paste an Anthropic API key. The key is stored in browser `localStorage` only and is sent to the optional `/api/generate` function for that request. If the request fails, the app silently falls back to the simulated generator so the demo never blocks.
 
-## What Is Real vs. Simulated
-
-Real in this prototype:
-
-- Role-based user experience across three business personas.
-- Interactive role switching, generated roadmap state, meeting prep state, draft approvals, and send simulation.
-- Trust controls: uncertainty flags, context confidence, and sensitive-data walls.
-- Optional API endpoint at `/api/ai` for live AI generation.
-
-Simulated for reviewer convenience:
-
-- Connected calendar, email, Loop, Jira, Power BI, and document data are represented by seeded demo data.
-- Outbound nudges are not actually sent.
-- The prototype uses deterministic demo intelligence when no API key is configured.
-
-## Optional AI Setup
-
-The app works without setup. To enable live AI generation in a Vercel deployment, add:
-
-```bash
-OPENAI_API_KEY=your_api_key
-OPENAI_MODEL=gpt-4.1-mini
-```
-
-If `OPENAI_API_KEY` is missing or the API is unavailable, the UI gracefully falls back to demo intelligence.
+No environment variables are required for deployment.
 
 ## AI Tools Used
 
-- Codex was used to synthesize the interview themes, plan the prototype, generate the application code, and write this README.
-- OpenAI image generation was used to create the visual concept for the app-shell dashboard.
-- The optional `/api/ai` endpoint is designed to call OpenAI for live roadmap, nudge, meeting-prep, and briefing generation when configured.
+- Codex was used to implement and refine the prototype in this repository.
+- Claude / Claude Code and Cursor may be listed here if used during the final submission workflow. Buli should adjust this section to match the actual tool history before tagging.
+- Optional runtime model: Anthropic Claude via a bring-your-own API key, off by default.
 
 ## Two-Month MVP Roadmap
 
-Week 1-2: Discovery and trust foundation
+**Weeks 1-3 — Real visibility (read-only).** Replace simulated data with scoped, read-only connectors for the tools these users actually use: Calendar + Email, Jira (Alex), Microsoft Loop (Claudia), Power BI (Alfredo), plus the team's chat (Slack or Teams). Permissions inherit what each user already has — no parallel access layer.
 
-- Validate the role-based workflows with 5-8 target leaders.
-- Define permission model for company-owned data, private notes, 1:1s, and sensitive HR categories.
-- Add audit logs for every recommendation and drafted outbound action.
+**Weeks 3-5 — Trust hardening.** Turn the demo's trust layer into infrastructure: a staleness/coverage model behind the confidence tags, an audit log of every inference and its source, human-in-the-loop gates on any outbound action, and the restricted-category wall enforced server-side.
 
-Week 3-4: Integrations and source of truth
+**Weeks 4-6 — Execution orchestration.** Two-way write-back behind approval (create/assign tasks in Loop/Jira), scheduled nudges and follow-ups, and a draft-deck reviewer that checks slides against a corporate style guide (Alfredo's ask).
 
-- Connect calendar and email read access.
-- Add Microsoft Loop or SharePoint document ingestion for project hubs and review materials.
-- Add Jira or task-board ingestion for execution status.
+**Weeks 6-7 — Proactive intelligence.** A weekly competitive/regulatory digest from a configurable watchlist (Alfredo lost his subscriptions in the reorg), and priority-shift detection across objectives.
 
-Week 5-6: Real execution workflows
+**Weeks 7-8 — Adoption & accuracy.** Guided onboarding with a human account manager (Claudia's ask), a team mode (AICOS supports the whole team, not one leader), and an evaluation harness measuring briefing accuracy and false-positive rate — the answer to "accurate without excessive human intervention."
 
-- Build approved-send integrations for email or Teams nudges.
-- Add meeting-prep generation from recent context.
-- Add objective-to-roadmap generation with owner confirmation and stale-context checks.
+Throughout: lowest-blast-radius first (read, then draft), earning higher-stakes capability (write, then act) only as accuracy is proven.
 
-Week 7-8: Pilot readiness
-
-- Add onboarding flows for managers and admins.
-- Add feedback capture on recommendation quality.
-- Add privacy review, observability, and usage analytics.
-- Run a pilot with a small leadership team and refine the MVP scope based on real usage.
-
-## Development Commands
+## Development
 
 ```bash
-pnpm install
-pnpm dev
-pnpm build
-pnpm lint
+npm install
+npm run dev
+npm run build
+npm run lint
 ```
 
-## Submission Notes
+This prototype is a Vite/React app. It deploys to Vercel with no required environment variables.
 
-The homework asks for a GitHub repository, final commit tag named `v1-submission`, and a deployed URL. After final verification:
+## Submission
 
 ```bash
-git add .
-git commit -m "Build AICOS prototype"
+git add -A && git commit -m "AICOS v1 submission"
 git tag v1-submission
 git push origin main --tags
 ```
 
-Deploy to Vercel with:
-
-```bash
-vercel
-vercel --prod
-```
+Reply to the assignment with the live URL and the link to the `v1-submission` tag.
