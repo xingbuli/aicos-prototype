@@ -1513,7 +1513,7 @@ function RoadmapTimeline({ objectives }) {
                   <StatusPill status={objective.status} />
                 </div>
                 {objective.rows.map((row) => (
-                  <TimelineTaskRow row={row} key={`${objective.id}-${row.task.title}`} />
+                  <TimelineTaskRow row={row} ticks={timeline.ticks} key={`${objective.id}-${row.task.title}`} />
                 ))}
               </div>
             ))}
@@ -1540,7 +1540,7 @@ function ObjectiveTimeline({ objective }) {
           <TimelineAxis ticks={timeline.ticks} compact />
           <div className="compact-timeline">
             {timeline.rows.map((row) => (
-              <TimelineTaskRow row={row} key={`${objective.id}-${row.task.title}`} compact />
+              <TimelineTaskRow row={row} ticks={timeline.ticks} key={`${objective.id}-${row.task.title}`} compact />
             ))}
           </div>
         </div>
@@ -1554,10 +1554,10 @@ function ObjectiveTimeline({ objective }) {
 function TimelineAxis({ ticks, compact = false }) {
   return (
     <div className={`timeline-axis ${compact ? "compact" : ""}`} aria-hidden>
-      <span className="timeline-axis-spacer" />
-      <div className="timeline-axis-track">
+      <span className="timeline-axis-label">{compact ? "Task" : "Task / status"}</span>
+      <div className="timeline-axis-track" style={{ "--timeline-columns": ticks.length }}>
         {ticks.map((tick) => (
-          <span style={{ left: `${tick.position}%` }} key={tick.label}>
+          <span className="timeline-date-tick" key={tick.label}>
             {tick.label}
           </span>
         ))}
@@ -1566,7 +1566,7 @@ function TimelineAxis({ ticks, compact = false }) {
   );
 }
 
-function TimelineTaskRow({ row, compact = false }) {
+function TimelineTaskRow({ row, ticks, compact = false }) {
   const statusMeta = STATUS_META[row.task.status] ?? STATUS_META.not_started;
   const confidenceMeta = CONFIDENCE_META[row.task.confidence] ?? CONFIDENCE_META.unknown;
 
@@ -1578,7 +1578,7 @@ function TimelineTaskRow({ row, compact = false }) {
           {row.task.owner} · {row.task.due || "date needs confirmation"} · {statusMeta.label} · {confidenceMeta.label}
         </span>
       </div>
-      <div className="timeline-track">
+      <div className="timeline-track" style={{ "--timeline-columns": ticks.length }}>
         {row.invalid ? (
           <span className="timeline-date-missing">
             <TriangleAlert size={13} /> date needs confirmation
@@ -2148,7 +2148,9 @@ function buildTimelineModel(objectives) {
         return;
       }
 
-      const startDate = previousDueDate ?? addDays(dueDate, -7);
+      const startDate = previousDueDate && previousDueDate < dueDate
+        ? previousDueDate
+        : addDays(dueDate, -7);
       rows.push({
         task,
         objective,
