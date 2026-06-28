@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
-  Bell,
   Bot,
-  CalendarDays,
   Check,
   CheckCircle2,
   Clock3,
@@ -11,27 +9,24 @@ import {
   ChevronRight,
   ClipboardList,
   Copy,
-  FileText,
+  HelpCircle,
   Home,
   KeyRound,
   LogOut,
   Map,
   Menu,
   MessageSquare,
-  Mic,
   Network,
   RotateCcw,
-  Search,
   Settings,
   ShieldCheck,
   Sparkles,
-  Target,
   TriangleAlert,
-  Users,
   X,
 } from "lucide-react";
 import {
   CHAT_FALLBACK,
+  CHAT_STARTERS,
   CONNECTED_SOURCES_COPY,
   FOUR_RULES,
   HELP_FAQ,
@@ -234,16 +229,19 @@ function Console({ persona, byoKey, onHelp, onSettings, onSignOut, onRequestAcce
   function navigatePanel(item) {
     setActiveView(item.label);
     setMobileNavOpen(false);
+    if (item.action === "help") {
+      onHelp();
+      return;
+    }
+    if (item.action === "settings") {
+      onSettings();
+      return;
+    }
     if (item.target) {
       scrollToPanel(item.target);
       notify(`Showing ${item.label}.`);
       return;
     }
-    if (item.label === "Integrations") {
-      onSettings();
-      return;
-    }
-    notify(`${item.label} is not a separate workspace yet.`);
   }
 
   function copyBrief() {
@@ -307,26 +305,19 @@ function Console({ persona, byoKey, onHelp, onSettings, onSignOut, onRequestAcce
       <div className="workspace">
         <Topbar
           persona={persona}
-          input={chatInput}
-          isThinking={isThinking}
-          onInput={setChatInput}
-          onSend={sendChat}
           onOpenNav={() => setMobileNavOpen(true)}
-          onNotifications={() => {
-            setActiveView("Risks & Alerts");
-            scrollToPanel("risks");
-            notify("Showing risks and alerts.");
-          }}
-          onCalendar={() => {
-            setActiveView("Meetings");
-            scrollToPanel("meetings");
-            notify("Showing meeting prep.");
-          }}
-          onProfile={onSettings}
+          onHelp={onHelp}
+          onSettings={onSettings}
         />
 
         <main className="console">
-          <BriefingSection persona={persona} onCopyBrief={copyBrief} />
+          <BriefingSection
+            persona={persona}
+            draftStates={draftStates}
+            onDraftState={setDraftState}
+            onRequestAccess={onRequestAccess}
+            onCopyBrief={copyBrief}
+          />
 
           <section className="dashboard-grid" aria-label="AICOS weekly dashboard">
             <div className="dashboard-main">
@@ -338,34 +329,18 @@ function Console({ persona, byoKey, onHelp, onSettings, onSignOut, onRequestAcce
                 hasByoKey={Boolean(byoKey.trim())}
                 onChange={setObjectiveText}
                 onSubmit={submitObjective}
-                onRoadmapActions={() => notify("Roadmap actions menu is ready for version 2.")}
               />
-              <RisksTable objectives={objectives} persona={persona} />
             </div>
 
             <aside className="dashboard-side">
-              <FollowUpQueue
-                persona={persona}
-                draftStates={draftStates}
-                onDraftState={setDraftState}
-                onRequestAccess={onRequestAccess}
-                onViewAll={() => {
-                  setActiveView("Follow-Ups");
-                  scrollToPanel("followups");
-                  notify("Showing all visible follow-ups.");
-                }}
-              />
-              <MeetingsPanel
-                persona={persona}
-                onSend={sendChat}
-                onViewCalendar={() => {
-                  setActiveView("Meetings");
-                  scrollToPanel("meetings");
-                  notify("Calendar view is represented by meeting prep in this demo.");
-                }}
-              />
               <AccessPanel persona={persona} onRequestAccess={onRequestAccess} />
-              <ChatPanel messages={chatMessages} isThinking={isThinking} />
+              <ChatPanel
+                messages={chatMessages}
+                input={chatInput}
+                isThinking={isThinking}
+                onInput={setChatInput}
+                onSend={sendChat}
+              />
             </aside>
           </section>
         </main>
@@ -382,15 +357,13 @@ function Console({ persona, byoKey, onHelp, onSettings, onSignOut, onRequestAcce
 function Sidebar({ persona, activeView, onNavigate, onHelp, onSettings, onSignOut, onClose }) {
   const navItems = [
     { label: "Home", icon: Home, target: "briefing" },
-    { label: "Leadership Briefing", icon: ClipboardList, target: "briefing" },
+    { label: "This week's briefing", icon: ClipboardList, target: "briefing" },
+    { label: "Hand AICOS a goal", icon: Sparkles, target: "objective" },
     { label: "Roadmaps", icon: Map, target: "roadmaps" },
-    { label: "Follow-Ups", icon: MessageSquare, badge: "12", target: "followups" },
-    { label: "Meetings", icon: CalendarDays, target: "meetings" },
-    { label: "Risks & Alerts", icon: TriangleAlert, badge: "5", tone: "danger", target: "risks" },
-    { label: "Goals", icon: Target, target: "roadmaps" },
-    { label: "Documents", icon: FileText },
-    { label: "People", icon: Users },
-    { label: "Integrations", icon: Network },
+    { label: "Access & walls", icon: ShieldCheck, target: "context" },
+    { label: "Talk to AICOS", icon: MessageSquare, target: "chat" },
+    { label: "How it works", icon: HelpCircle, action: "help" },
+    { label: "Connected sources", icon: Network, action: "settings" },
   ];
 
   return (
@@ -426,31 +399,26 @@ function Sidebar({ persona, activeView, onNavigate, onHelp, onSettings, onSignOu
 
         <div className="sidebar-bottom">
           <div className="source-card">
-            <p>AICOS is connected to</p>
+            <p>Connected sources</p>
             <div className="source-icons" aria-label="Connected sources">
-              {persona.connectors.slice(0, 7).map((connector) => (
+              {persona.connectors.map((connector) => (
                 <span key={connector.source}>{connector.source.slice(0, 1)}</span>
               ))}
-              <small>+3</small>
             </div>
           </div>
 
           <div className="confidence-card">
             <div className="confidence-topline">
-              <span>Context confidence</span>
-              <strong>High</strong>
-            </div>
-            <div className="confidence-meter" aria-hidden>
-              <span />
-            </div>
-            <p>AICOS knows most of your context</p>
-            <div className="confidence-row">
-              <span><i className="known" />Knows</span>
-              <strong>87%</strong>
+              <span>Trust rules</span>
+              <strong>Always on</strong>
             </div>
             <div className="confidence-row">
-              <span><i className="needs" />Needs confirmation</span>
-              <strong>13%</strong>
+              <span><i className="known" />Drafts wait for approval</span>
+              <strong>1</strong>
+            </div>
+            <div className="confidence-row">
+              <span><i className="needs" />Blind spots are named</span>
+              <strong>2</strong>
             </div>
             <button onClick={onHelp}>Review context</button>
           </div>
@@ -469,64 +437,22 @@ function Sidebar({ persona, activeView, onNavigate, onHelp, onSettings, onSignOu
   );
 }
 
-function Topbar({
-  persona,
-  input,
-  isThinking,
-  onInput,
-  onSend,
-  onOpenNav,
-  onNotifications,
-  onCalendar,
-  onProfile,
-}) {
+function Topbar({ persona, onOpenNav, onHelp, onSettings }) {
   return (
     <header className="topbar">
       <button className="mobile-menu" onClick={onOpenNav} aria-label="Open navigation">
         <Menu size={18} />
       </button>
-      <form
-        className="command-bar"
-        onSubmit={(event) => {
-          event.preventDefault();
-          onSend(input);
-        }}
-      >
-        <Search size={16} />
-        <label className="sr-only" htmlFor="aicos-command">
-          Ask AICOS
-        </label>
-        <input
-          id="aicos-command"
-          value={input}
-          onChange={(event) => onInput(event.target.value)}
-          placeholder={'Ask AICOS anything... (e.g., "Prepare me for my 1:15" or "What are our top risks?")'}
-        />
-        <button
-          className="voice-button"
-          type="button"
-          aria-label="Voice input"
-          onClick={() => onSend("What should I focus on today?")}
-        >
-          <Mic size={15} />
-        </button>
-        <button className="ask-button" disabled={isThinking}>
-          {isThinking ? "Checking" : "Ask"}
-        </button>
-      </form>
+      <div className="workspace-title">
+        <strong>{persona.name}</strong>
+        <span>{persona.role} · {persona.team}-person team · tracks in {persona.tracksIn}</span>
+      </div>
       <div className="topbar-meta">
-        <button className="top-icon alert" aria-label="Notifications" onClick={onNotifications}>
-          <span>3</span>
-          <Bell size={16} />
+        <span className="prototype-marker">Interactive prototype · simulated workspace</span>
+        <button className="top-icon" aria-label="How AICOS works" onClick={onHelp}>
+          <ShieldCheck size={16} />
         </button>
-        <button className="top-icon" aria-label="Calendar" onClick={onCalendar}>
-          <CalendarDays size={16} />
-        </button>
-        <div className="date-stack">
-          <strong>May 12, 2025</strong>
-          <span>Mon 9:41 AM</span>
-        </div>
-        <button className="avatar-menu" aria-label={`${persona.name} profile`} onClick={onProfile}>
+        <button className="avatar-menu" aria-label={`${persona.name} settings`} onClick={onSettings}>
           {persona.name.split(" ").map((part) => part[0]).join("").slice(0, 2)}
         </button>
       </div>
@@ -534,25 +460,15 @@ function Topbar({
   );
 }
 
-function BriefingSection({ persona, onCopyBrief }) {
-  const blockerCount = persona.briefing.items.filter((item) => item.kind === "blocker").length;
+function BriefingSection({ persona, draftStates, onDraftState, onRequestAccess, onCopyBrief }) {
   const priorityItem = persona.briefing.items.find((item) => item.kind === "blocker") ?? persona.briefing.items[0];
-  const tasks = persona.objectives.flatMap((objective) => objective.tasks);
-  const onTrack = tasks.filter((task) => task.status === "on_track").length;
-  const atRisk = tasks.filter((task) => ["blocked", "stale"].includes(task.status)).length;
-  const metrics = [
-    { label: "On track", value: onTrack + 3, delta: "+2", icon: CheckCircle2, tone: "success" },
-    { label: "At risk", value: atRisk + blockerCount, delta: "+1", icon: TriangleAlert, tone: "warning" },
-    { label: "Meetings", value: 24, delta: "+4", icon: CalendarDays, tone: "blue" },
-    { label: "Action items", value: 42, delta: "-3", icon: Check, tone: "purple" },
-  ];
 
   return (
     <section className="briefing-card rise" data-tour="briefing" id="briefing">
       <div className="briefing-heading">
         <div>
-          <h1>Weekly Leadership Briefing</h1>
-          <span>{persona.name} · May 12 - May 18, 2025</span>
+          <h1>This week&apos;s briefing</h1>
+          <span>{persona.name} · late June 2026 demo · early July work</span>
         </div>
         <button className="copy-brief" onClick={onCopyBrief}>
           <Copy size={14} />
@@ -562,136 +478,65 @@ function BriefingSection({ persona, onCopyBrief }) {
 
       <div className="focus-brief">
         <div className="focus-copy">
-          <span className="section-kicker">Decision that needs you</span>
+          <span className="section-kicker">Start here</span>
           <h2>{priorityItem.title}</h2>
           <p>{priorityItem.body}</p>
           <div className="focus-actions">
-            <a href="#risks">Review blocker <ArrowRight size={13} /></a>
+            <a href="#briefing-items">Review briefing <ArrowRight size={13} /></a>
             <ConfidenceTag confidence={priorityItem.confidence} />
           </div>
         </div>
         <div className="trust-card" aria-label="AICOS confidence summary">
           <div className="trust-card-top">
             <ShieldCheck size={18} />
-            <span>Context confidence</span>
-            <strong>87%</strong>
-          </div>
-          <div className="trust-meter" aria-hidden>
-            <span />
+            <span>Trust layer</span>
+            <strong>Visible</strong>
           </div>
           <div className="trust-sources">
-            {persona.connectors.slice(0, 4).map((connector) => (
-              <span key={connector.source}>{connector.source}</span>
-            ))}
+            <span>Draft, don&apos;t send</span>
+            <span>Show confidence</span>
+            <span>Name the gaps</span>
+            <span>Respect the walls</span>
           </div>
-          <small><Clock3 size={13} /> Refreshed 12 minutes ago</small>
+          <small><Clock3 size={13} /> Nothing sends without approval</small>
         </div>
       </div>
 
-      <div className="metric-strip">
-        {metrics.map((metric) => {
-          const Icon = metric.icon;
-          return (
-            <article className="metric-card" key={metric.label} data-tone={metric.tone}>
-              <span className="metric-icon">
-                <Icon size={16} />
-              </span>
-              <div>
-                <strong>{metric.value}</strong>
-                <span>{metric.label}</span>
-                <small>
-                  vs last week <b>{metric.delta}</b>
-                </small>
-              </div>
-            </article>
-          );
-        })}
+      <div className="briefing-summary">
+        <strong>Summary</strong>
+        <p>{persona.briefing.summary}</p>
       </div>
 
-      <div className="top-insight">
-        <strong>Top insight:</strong>
-        <span>{persona.briefing.summary}</span>
-        <a href="#risks">View all insights <ArrowRight size={13} /></a>
-      </div>
-    </section>
-  );
-}
-
-function FollowUpQueue({ persona, draftStates, onDraftState, onRequestAccess, onViewAll }) {
-  const owners = ["Alex Martinez", "Taylor Singh", "Jamie Williams", "Emily Rogers", "Daniel Kim"];
-  const dueDates = ["May 13", "May 14", "May 15", "May 16", "May 16"];
-  const items = [
-    ...persona.briefing.items.map((item, index) => ({
-      ...item,
-      owner: owners[index] ?? persona.name,
-      due: dueDates[index] ?? "May 17",
-    })),
-    {
-      id: "manual-update",
-      kind: "prep",
-      confidence: "verified",
-      title: "Update comms plan",
-      body: "Add the latest launch dependency and send the revised plan for review.",
-      owner: "Daniel Kim",
-      due: "May 16",
-    },
-  ];
-
-  return (
-    <section className="panel follow-panel" id="followups">
-      <PanelTitle title="Follow-Up Queue" badge="12" action="View all" onAction={onViewAll} />
-      <div className="queue-table">
-        <div className="queue-head">
-          <span>Owner</span>
-          <span>Next action</span>
-          <span>Due</span>
-        </div>
-        {items.map((item, index) => (
+      <div className="briefing-items" id="briefing-items">
+        {persona.briefing.items.map((item, index) => (
           <article
-            className="queue-row"
+            className="briefing-item"
             key={item.id}
-            data-tour={item.confidence === "unknown" ? "blindspot" : undefined}
+            data-tour={
+              item.confidence === "unknown" ? "blindspot" : index === 0 ? "confidence" : undefined
+            }
           >
-            <span className="person-cell">
-              <Avatar name={item.owner} />
-              {item.owner}
-            </span>
-            <div>
-              <strong>{item.title}</strong>
-              <small data-tour={index === 0 ? "confidence" : undefined}>
+            <div className="briefing-item-main">
+              <div className="item-tags">
+                <KindBadge kind={item.kind} />
                 <ConfidenceTag confidence={item.confidence} />
-              </small>
+              </div>
+              <h2>{item.title}</h2>
+              <p>{item.body}</p>
             </div>
-            <time>{item.due}</time>
+            {(item.draft || item.secondaryAction) && (
+              <DraftCard
+                item={item}
+                state={draftStates[item.id] ?? "open"}
+                onApprove={() => onDraftState(item.id, "approved")}
+                onDismiss={() => onDraftState(item.id, "dismissed")}
+                onRequestAccess={onRequestAccess}
+              />
+            )}
           </article>
         ))}
       </div>
-      <DraftStack
-        items={items}
-        draftStates={draftStates}
-        onDraftState={onDraftState}
-        onRequestAccess={onRequestAccess}
-      />
     </section>
-  );
-}
-
-function DraftStack({ items, draftStates, onDraftState, onRequestAccess }) {
-  const actionable = items.filter((item) => item.draft || item.secondaryAction).slice(0, 1);
-  if (!actionable.length) return null;
-  return (
-    <div className="draft-stack">
-      {actionable.map((item) => (
-        <DraftCard
-          item={item}
-          key={item.id}
-          state={draftStates[item.id] ?? "open"}
-          onApprove={() => onDraftState(item.id, "approved")}
-          onDismiss={() => onDraftState(item.id, "dismissed")}
-          onRequestAccess={onRequestAccess}
-        />
-      ))}
-    </div>
   );
 }
 
@@ -740,198 +585,138 @@ function RoadmapBoard({
   hasByoKey,
   onChange,
   onSubmit,
-  onRoadmapActions,
 }) {
-  const objective = objectives[0];
-  const timelineDates = ["12", "19", "26", "2", "9", "16", "23", "30", "7", "14"];
   return (
     <section className="panel roadmap-board" data-tour="objective" id="roadmaps">
       <div className="panel-heading">
         <div>
-          <h2>Roadmap: {objective.title.replace(/^Roadmap:\s*/i, "")}</h2>
+          <h2>Hand AICOS a goal</h2>
           <div className="panel-subline">
-            <StatusPill status={objective.tasks.some((task) => task.status === "blocked") ? "blocked" : "on_track"} />
-            <span>Updated from connected workstreams</span>
+            <span>
+              AICOS turns an objective into an owned, dated plan and marks every assumption.
+            </span>
           </div>
         </div>
-        <button className="more-button" aria-label="Roadmap actions" onClick={onRoadmapActions}>...</button>
-      </div>
-
-      <div className="roadmap-meta">
-        <span><small>Objective</small>{objective.okr}</span>
-        <span><small>Target</small>Jun 30, 2025</span>
-        <span><small>Owner</small><Avatar name={objective.tasks[0]?.owner ?? "AICOS"} /> {objective.tasks[0]?.owner}</span>
-      </div>
-
-      <div className="timeline">
-        <div className="timeline-months">
-          <span>May</span>
-          <span>Jun</span>
-          <span>Jul</span>
-        </div>
-        <div className="timeline-axis">
-          <span>Initiative</span>
-          {timelineDates.map((date) => <span key={date}>{date}</span>)}
-        </div>
-        {objective.tasks.slice(0, 5).map((task, index) => (
-          <div className="timeline-row" key={task.title}>
-            <span>{index + 1}. {task.title}</span>
-            <i
-              className={`bar ${task.status}`}
-              style={{
-                "--start": `${3 + index}`,
-                "--span": `${index === 1 ? 3 : index === 2 ? 4 : 2}`,
-              }}
-            />
-          </div>
-        ))}
       </div>
 
       <form className="roadmap-composer" onSubmit={onSubmit}>
         <label className="sr-only" htmlFor="objective">Generate a roadmap objective</label>
-        <span className="composer-label">Create a new plan</span>
+        <span className="composer-label">New objective</span>
         <input
           id="objective"
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder="Describe a goal for AICOS to turn into a roadmap"
         />
-        <small>{error || (hasByoKey ? "Live mode available" : "Simulated preview")}</small>
+        <small>{error || (hasByoKey ? "Generated · live when available" : "Generated · simulated preview")}</small>
         <button className="btn btn-primary" disabled={isGenerating}>
           <Sparkles size={15} />
           {isGenerating ? "Generating..." : "Generate roadmap"}
         </button>
       </form>
+
+      <div className="objective-stack">
+        {objectives.map((objective) => (
+          <ObjectiveCard objective={objective} key={objective.id} />
+        ))}
+      </div>
     </section>
   );
 }
 
-function RisksTable({ objectives, persona }) {
-  const rows = objectives
-    .flatMap((objective) => objective.tasks.map((task) => ({ ...task, objective: objective.title })))
-    .filter((task) => task.status !== "on_track")
-    .slice(0, 5);
-
-  const fallback = persona.briefing.items.map((item, index) => ({
-    title: item.title,
-    owner: ["Alex Martinez", "Jamie Williams", "Emily Rogers"][index] ?? persona.name,
-    status: item.kind === "blocker" ? "blocked" : "stale",
-    objective: item.body,
-    confidence: item.confidence,
-  }));
+function ObjectiveCard({ objective }) {
+  const status = objective.tasks.some((task) => task.status === "blocked")
+    ? "blocked"
+    : objective.tasks.some((task) => task.status === "stale")
+      ? "stale"
+      : objective.tasks.some((task) => task.status === "not_started")
+        ? "not_started"
+        : "on_track";
 
   return (
-    <section className="panel risks-panel" id="risks">
-      <PanelTitle title="Risks & Blockers" badge="5" action="View all" onAction={() => document.getElementById("risks")?.scrollIntoView({ behavior: "smooth" })} />
-      <div className="risk-table">
-        <div className="risk-head">
-          <span>Severity</span>
-          <span>Risk / blocker</span>
-          <span>Impact</span>
-          <span>Owner</span>
-          <span>Trend</span>
+    <article className={`objective-card ${objective.generated ? "generated" : ""}`}>
+      <div className="objective-head">
+        <div>
+          <h3>{objective.title}</h3>
+          <p>{objective.okr}</p>
         </div>
-        {[...rows, ...fallback].slice(0, 5).map((row, index) => (
-          <article className="risk-row" key={`${row.title}-${index}`}>
-            <Severity status={row.status} />
-            <div>
-              <strong>{row.title}</strong>
-              <small>{row.objective}</small>
-            </div>
-            <span>{row.status === "blocked" ? "Launch delay" : "Timeline risk"}</span>
-            <span className="owner-cell"><Avatar name={row.owner} /> {row.owner}</span>
-            <Sparkline tone={row.status === "blocked" ? "danger" : "warning"} />
-          </article>
-        ))}
+        <div className="objective-badges">
+          {objective.generated && (
+            <span className="generated-badge">
+              Generated · {objective.live ? "live" : "simulated preview"}
+            </span>
+          )}
+          <StatusPill status={status} />
+        </div>
       </div>
-      <footer className="panel-footer">Risk model last updated May 12, 8:15 AM <a href="#top">View all risks <ArrowRight size={13} /></a></footer>
-    </section>
-  );
-}
 
-function MeetingsPanel({ persona, onSend, onViewCalendar }) {
-  const [activeTab, setActiveTab] = useState("1:1s");
-  const meetings = [
-    { title: "Staff meeting", person: persona.name, role: persona.role, time: "Today, 10:00 - 10:30 AM", tone: "teal" },
-    { title: "Director, People", person: "Taylor Singh", role: "Director, People", time: "Today, 2:00 - 2:30 PM", tone: "purple" },
-  ];
-  const visibleMeetings =
-    activeTab === "Staff meeting"
-      ? meetings.filter((meeting) => meeting.title === "Staff meeting")
-      : meetings;
-  return (
-    <section className="panel meetings-panel" id="meetings">
-      <PanelTitle title="Prep for your meetings" icon={CalendarDays} />
-      <div className="meeting-tabs">
-        {["1:1s", "Staff meeting"].map((tab) => (
-          <button
-            className={activeTab === tab ? "active" : ""}
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-      <div className="meeting-list">
-        {visibleMeetings.map((meeting) => (
-          <article className="meeting-card" key={meeting.person}>
-            <div className={`meeting-avatar ${meeting.tone}`}>{meeting.person.split(" ").map((part) => part[0]).join("").slice(0, 2)}</div>
+      {objective.openQuestions?.length > 0 && (
+        <div className="open-questions">
+          <strong>AICOS needs you to confirm</strong>
+          {objective.openQuestions.map((question) => (
+            <p key={question}>{question}</p>
+          ))}
+        </div>
+      )}
+
+      <div className="task-list" role="list">
+        {objective.tasks.map((task) => (
+          <article className="task-row" role="listitem" key={`${objective.id}-${task.title}`}>
             <div>
-              <strong>{meeting.person}</strong>
-              <span>{meeting.role}</span>
-              <small>{meeting.time}</small>
-              <p><CalendarDays size={13} /> 6 <MessageSquare size={13} /> 3</p>
+              <strong>{task.title}</strong>
+              <small>{task.provenance}</small>
             </div>
-            <button onClick={() => onSend(`Prepare me for ${meeting.person}`)}>Prep 1:1</button>
+            <span className="task-owner">
+              <Avatar name={task.owner} />
+              {task.owner}
+            </span>
+            <time>{task.due}</time>
+            <StatusPill status={task.status} />
+            <ConfidenceTag confidence={task.confidence} />
           </article>
         ))}
       </div>
-      <button className="panel-link as-button" onClick={onViewCalendar}>View full calendar <ArrowRight size={13} /></button>
-    </section>
+    </article>
   );
 }
 
 function AccessPanel({ persona, onRequestAccess }) {
-  const connected = persona.access.filter((item) => item.state !== "off");
-  const blocked = persona.access.filter((item) => item.state === "off");
   return (
     <section className="panel access-card" id="context">
       <div className="panel-heading">
-        <h2>What AICOS knows vs. needs confirmation</h2>
-        <button className="text-action" onClick={() => onRequestAccess("Review context sources")}>Manage context</button>
+        <h2>What AICOS can see</h2>
+        <button className="text-action" onClick={() => onRequestAccess("Review context sources")}>Request access</button>
       </div>
-      <div className="knowledge-block">
-        <div className="knowledge-title success">
-          <CheckCircle2 size={16} />
-          <strong>AICOS knows</strong>
-          <span>87%</span>
-        </div>
-        <ul>
-          {connected.slice(0, 5).map((item) => (
-            <li key={item.source}>{item.source}: {item.level}</li>
-          ))}
-        </ul>
+      <p className="access-intro">
+        AICOS only uses granted sources. Off-limits areas stay walled off; if more context is needed,
+        it asks a human through you.
+      </p>
+      <div className="access-list">
+        {persona.access.map((item) => {
+          const isOffLimits = item.state === "off";
+          return (
+            <article className={`access-row ${isOffLimits ? "off" : "connected"}`} key={item.source}>
+              <span className="access-state" aria-hidden>
+                {isOffLimits ? <TriangleAlert size={15} /> : <CheckCircle2 size={15} />}
+              </span>
+              <div>
+                <strong>{item.source}</strong>
+                <small>{item.level}{item.note ? ` · ${item.note}` : ""}</small>
+              </div>
+              {isOffLimits && (
+                <button className="tiny-link" onClick={() => onRequestAccess(item.source)}>
+                  Ask a human
+                </button>
+              )}
+            </article>
+          );
+        })}
       </div>
-      <div className="knowledge-block">
-        <div className="knowledge-title warning">
-          <TriangleAlert size={16} />
-          <strong>Needs confirmation</strong>
-          <span>13%</span>
-        </div>
-        <ul>
-          {blocked.map((item) => (
-            <li key={item.source}>{item.source}{item.note ? `: ${item.note}` : ""}</li>
-          ))}
-          <li>Confirm stakeholder notes before executive review</li>
-        </ul>
-      </div>
-      <button className="panel-link as-button" onClick={() => onRequestAccess("Confirm context gaps")}>Review all context gaps <ArrowRight size={13} /></button>
     </section>
   );
 }
 
-function ChatPanel({ messages, isThinking }) {
+function ChatPanel({ messages, input, isThinking, onInput, onSend }) {
   const messagesRef = useRef(null);
 
   useEffect(() => {
@@ -939,16 +724,41 @@ function ChatPanel({ messages, isThinking }) {
   }, [messages, isThinking]);
 
   return (
-    <section className="panel chat-card">
-      <PanelTitle title="AICOS response" icon={Bot} />
+    <section className="panel chat-card" id="chat">
+      <PanelTitle title="Talk to AICOS" icon={Bot} />
+      <div className="starter-chips">
+        {CHAT_STARTERS.map((starter) => (
+          <button key={starter} onClick={() => onSend(starter)} disabled={isThinking}>
+            {starter}
+          </button>
+        ))}
+      </div>
       <div className="chat-log" ref={messagesRef}>
-        {messages.slice(-3).map((message) => (
+        {messages.map((message) => (
           <div className={`chat-bubble ${message.role}`} key={message.id}>
             {message.text}
           </div>
         ))}
         {isThinking && <div className="chat-bubble aicos">Checking connected sources and confidence tags...</div>}
       </div>
+      <form
+        className="chat-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSend(input);
+        }}
+      >
+        <label className="sr-only" htmlFor="chat-input">Message AICOS</label>
+        <input
+          id="chat-input"
+          value={input}
+          onChange={(event) => onInput(event.target.value)}
+          placeholder="Ask a follow-up"
+        />
+        <button className="btn btn-primary" disabled={isThinking}>
+          Ask
+        </button>
+      </form>
     </section>
   );
 }
@@ -967,19 +777,6 @@ function PanelTitle({ title, badge, action, icon: Icon, onAction }) {
 
 function Avatar({ name }) {
   return <span className="avatar">{name.split(" ").map((part) => part[0]).join("").slice(0, 2)}</span>;
-}
-
-function Severity({ status }) {
-  const label = status === "blocked" ? "High" : status === "stale" ? "Medium" : "Low";
-  return <span className={`severity ${label.toLowerCase()}`}>{label}</span>;
-}
-
-function Sparkline({ tone }) {
-  return (
-    <svg className={`sparkline ${tone}`} viewBox="0 0 72 24" aria-hidden>
-      <polyline points="0,18 12,15 22,16 34,8 45,12 55,5 72,14" />
-    </svg>
-  );
 }
 
 function HelpModal({ onClose, onReplayTour }) {
@@ -1241,6 +1038,16 @@ function Modal({ title, children, onClose, size = "default" }) {
       </section>
     </div>
   );
+}
+
+function KindBadge({ kind }) {
+  const labels = {
+    blocker: "Blocker",
+    attention: "Needs attention",
+    prep: "Prepare",
+    shift: "Priority shift",
+  };
+  return <span className={`kind-badge ${kind}`}>{labels[kind] ?? kind}</span>;
 }
 
 function StatusPill({ status }) {
