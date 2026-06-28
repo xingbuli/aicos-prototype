@@ -1042,6 +1042,105 @@ a {
   align-content: start;
 }
 
+.view-page {
+  display: grid;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.view-header {
+  display: grid;
+  gap: 0.28rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(120deg, rgba(0, 140, 137, 0.08), rgba(37, 99, 235, 0.04)),
+    var(--surface);
+  padding: 1rem 1.05rem;
+  box-shadow: var(--shadow-card);
+}
+
+.view-header .eyebrow {
+  margin-bottom: 0;
+}
+
+.view-header h1 {
+  font-size: 1.24rem;
+}
+
+.view-header p:last-child {
+  max-width: 860px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.home-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.preview-card {
+  min-width: 0;
+  display: grid;
+  gap: 0.9rem;
+  align-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  padding: 0.9rem;
+}
+
+.preview-card h2 {
+  margin-top: 0.15rem;
+  font-size: 0.98rem;
+}
+
+.preview-card p {
+  display: -webkit-box;
+  min-height: 3.6em;
+  overflow: hidden;
+  margin: 0.38rem 0 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.preview-action {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  border: 1px solid rgba(0, 140, 137, 0.22);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--teal-dark);
+  padding: 0.42rem 0.56rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.preview-action:hover {
+  border-color: var(--teal);
+  background: var(--teal-soft);
+}
+
+.access-view-shell,
+.chat-view-shell {
+  max-width: 980px;
+}
+
+.chat-view-shell .chat-card {
+  min-height: min(650px, calc(100vh - 185px));
+}
+
+.chat-view-shell .chat-log {
+  max-height: min(52vh, 520px);
+}
+
 .panel {
   padding: 0.9rem;
 }
@@ -2058,6 +2157,10 @@ a {
     grid-template-columns: 1fr;
   }
 
+  .home-preview-grid {
+    grid-template-columns: 1fr;
+  }
+
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
@@ -2142,6 +2245,14 @@ a {
 
   .console {
     padding: 0.7rem;
+  }
+
+  .view-header {
+    padding: 0.85rem;
+  }
+
+  .view-header h1 {
+    font-size: 1.05rem;
   }
 
   .topbar {

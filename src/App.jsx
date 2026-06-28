@@ -7,7 +7,6 @@ import {
   Clock3,
   ChevronLeft,
   ChevronRight,
-  ClipboardList,
   Copy,
   HelpCircle,
   Home,
@@ -52,6 +51,21 @@ const STORAGE_KEYS = {
   persona: "aicos.persona",
   byoKey: "aicos.anthropicKey",
   tourPrefix: "aicos.tourSeen.",
+};
+
+const VIEWS = {
+  home: "Home",
+  roadmaps: "Roadmaps",
+  access: "Access & walls",
+  chat: "Talk to AICOS",
+};
+
+const TOUR_VIEW_BY_TARGET = {
+  briefing: VIEWS.home,
+  confidence: VIEWS.home,
+  blindspot: VIEWS.home,
+  draft: VIEWS.home,
+  objective: VIEWS.roadmaps,
 };
 
 function App() {
@@ -102,6 +116,7 @@ function App() {
       <Console
         persona={persona}
         byoKey={byoKey}
+        tourStep={showTour ? TOUR_STEPS[tourIndex] : null}
         onHelp={() => setModal({ type: "help" })}
         onSettings={() => setModal({ type: "settings" })}
         onSignOut={signOut}
@@ -177,7 +192,7 @@ function SignIn({ onEnter }) {
   );
 }
 
-function Console({ persona, byoKey, onHelp, onSettings, onSignOut, onRequestAccess }) {
+function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onRequestAccess }) {
   const [objectives, setObjectives] = useState(persona.objectives);
   const [objectiveText, setObjectiveText] = useState(persona.objectivePrompt);
   const [objectiveError, setObjectiveError] = useState("");
@@ -193,7 +208,7 @@ function Console({ persona, byoKey, onHelp, onSettings, onSignOut, onRequestAcce
   const [chatInput, setChatInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [activeView, setActiveView] = useState("Home");
+  const [activeView, setActiveView] = useState(VIEWS.home);
   const [toast, setToast] = useState("");
 
   useEffect(() => {
@@ -202,7 +217,7 @@ function Console({ persona, byoKey, onHelp, onSettings, onSignOut, onRequestAcce
     setObjectiveError("");
     setDraftStates({});
     setChatInput("");
-    setActiveView("Home");
+    setActiveView(VIEWS.home);
     setChatMessages([
       {
         id: "hello",
@@ -218,30 +233,33 @@ function Console({ persona, byoKey, onHelp, onSettings, onSignOut, onRequestAcce
     return () => window.clearTimeout(timer);
   }, [toast]);
 
+  useEffect(() => {
+    const nextView = TOUR_VIEW_BY_TARGET[tourStep?.target];
+    if (nextView) setActiveView(nextView);
+  }, [tourStep]);
+
   function notify(message) {
     setToast(message);
   }
 
-  function scrollToPanel(id) {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
   function navigatePanel(item) {
-    setActiveView(item.label);
-    setMobileNavOpen(false);
     if (item.action === "help") {
+      setMobileNavOpen(false);
       onHelp();
       return;
     }
     if (item.action === "settings") {
+      setMobileNavOpen(false);
       onSettings();
       return;
     }
-    if (item.target) {
-      scrollToPanel(item.target);
-      notify(`Showing ${item.label}.`);
-      return;
-    }
+    setActiveView(item.view);
+    setMobileNavOpen(false);
+  }
+
+  function openView(view) {
+    setActiveView(view);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function copyBrief() {
@@ -311,38 +329,44 @@ function Console({ persona, byoKey, onHelp, onSettings, onSignOut, onRequestAcce
         />
 
         <main className="console">
-          <BriefingSection
-            persona={persona}
-            draftStates={draftStates}
-            onDraftState={setDraftState}
-            onRequestAccess={onRequestAccess}
-            onCopyBrief={copyBrief}
-          />
+          {activeView === VIEWS.home && (
+            <HomeView
+              persona={persona}
+              objectives={objectives}
+              chatMessages={chatMessages}
+              draftStates={draftStates}
+              onDraftState={setDraftState}
+              onRequestAccess={onRequestAccess}
+              onCopyBrief={copyBrief}
+              onOpenView={openView}
+            />
+          )}
 
-          <section className="dashboard-grid" aria-label="AICOS weekly dashboard">
-            <div className="dashboard-main">
-              <RoadmapBoard
-                objectives={objectives}
-                value={objectiveText}
-                error={objectiveError}
-                isGenerating={isGenerating}
-                hasByoKey={Boolean(byoKey.trim())}
-                onChange={setObjectiveText}
-                onSubmit={submitObjective}
-              />
-            </div>
+          {activeView === VIEWS.roadmaps && (
+            <RoadmapsView
+              objectives={objectives}
+              value={objectiveText}
+              error={objectiveError}
+              isGenerating={isGenerating}
+              hasByoKey={Boolean(byoKey.trim())}
+              onChange={setObjectiveText}
+              onSubmit={submitObjective}
+            />
+          )}
 
-            <aside className="dashboard-side">
-              <AccessPanel persona={persona} onRequestAccess={onRequestAccess} />
-              <ChatPanel
-                messages={chatMessages}
-                input={chatInput}
-                isThinking={isThinking}
-                onInput={setChatInput}
-                onSend={sendChat}
-              />
-            </aside>
-          </section>
+          {activeView === VIEWS.access && (
+            <AccessView persona={persona} onRequestAccess={onRequestAccess} />
+          )}
+
+          {activeView === VIEWS.chat && (
+            <ChatView
+              messages={chatMessages}
+              input={chatInput}
+              isThinking={isThinking}
+              onInput={setChatInput}
+              onSend={sendChat}
+            />
+          )}
         </main>
         {toast && (
           <div className="toast" role="status" aria-live="polite">
@@ -356,12 +380,10 @@ function Console({ persona, byoKey, onHelp, onSettings, onSignOut, onRequestAcce
 
 function Sidebar({ persona, activeView, onNavigate, onHelp, onSettings, onSignOut, onClose }) {
   const navItems = [
-    { label: "Home", icon: Home, target: "briefing" },
-    { label: "This week's briefing", icon: ClipboardList, target: "briefing" },
-    { label: "Hand AICOS a goal", icon: Sparkles, target: "objective" },
-    { label: "Roadmaps", icon: Map, target: "roadmaps" },
-    { label: "Access & walls", icon: ShieldCheck, target: "context" },
-    { label: "Talk to AICOS", icon: MessageSquare, target: "chat" },
+    { label: VIEWS.home, icon: Home, view: VIEWS.home },
+    { label: VIEWS.roadmaps, icon: Map, view: VIEWS.roadmaps },
+    { label: VIEWS.access, icon: ShieldCheck, view: VIEWS.access },
+    { label: VIEWS.chat, icon: MessageSquare, view: VIEWS.chat },
     { label: "How it works", icon: HelpCircle, action: "help" },
     { label: "Connected sources", icon: Network, action: "settings" },
   ];
@@ -434,6 +456,165 @@ function Sidebar({ persona, activeView, onNavigate, onHelp, onSettings, onSignOu
         </div>
       </aside>
     </>
+  );
+}
+
+function HomeView({
+  persona,
+  objectives,
+  chatMessages,
+  draftStates,
+  onDraftState,
+  onRequestAccess,
+  onCopyBrief,
+  onOpenView,
+}) {
+  return (
+    <>
+      <BriefingSection
+        persona={persona}
+        draftStates={draftStates}
+        onDraftState={onDraftState}
+        onRequestAccess={onRequestAccess}
+        onCopyBrief={onCopyBrief}
+      />
+      <HomePreviewGrid
+        persona={persona}
+        objectives={objectives}
+        chatMessages={chatMessages}
+        onOpenView={onOpenView}
+      />
+    </>
+  );
+}
+
+function HomePreviewGrid({ persona, objectives, chatMessages, onOpenView }) {
+  const allTasks = objectives.flatMap((objective) => objective.tasks);
+  const blockedCount = allTasks.filter((task) => task.status === "blocked").length;
+  const staleCount = allTasks.filter((task) => task.status === "stale").length;
+  const offLimitsCount = persona.access.filter((item) => item.state === "off").length;
+  const connectedCount = persona.access.filter((item) => item.state === "connected").length;
+  const lastMessage = [...chatMessages].reverse().find((message) => message.role === "aicos");
+
+  return (
+    <section className="home-preview-grid" aria-label="Workspace sections">
+      <article className="preview-card">
+        <div>
+          <span className="section-kicker">Roadmaps</span>
+          <h2>{objectives.length} active objectives</h2>
+          <p>
+            {blockedCount
+              ? `${blockedCount} blocked task needs attention.`
+              : staleCount
+                ? `${staleCount} stale task needs a check-in.`
+                : "Plans are organized by owner, date, status, and confidence."}
+          </p>
+        </div>
+        <button className="preview-action" onClick={() => onOpenView(VIEWS.roadmaps)}>
+          Open roadmaps <ArrowRight size={14} />
+        </button>
+      </article>
+
+      <article className="preview-card">
+        <div>
+          <span className="section-kicker">Access & walls</span>
+          <h2>{connectedCount} connected sources</h2>
+          <p>
+            {offLimitsCount} area{offLimitsCount === 1 ? "" : "s"} stay walled off unless you ask a
+            human to grant more context.
+          </p>
+        </div>
+        <button className="preview-action" onClick={() => onOpenView(VIEWS.access)}>
+          Review access <ArrowRight size={14} />
+        </button>
+      </article>
+
+      <article className="preview-card">
+        <div>
+          <span className="section-kicker">Talk to AICOS</span>
+          <h2>Ask with context</h2>
+          <p>{lastMessage?.text ?? "AICOS is ready to answer from the current workspace context."}</p>
+        </div>
+        <button className="preview-action" onClick={() => onOpenView(VIEWS.chat)}>
+          Open chat <ArrowRight size={14} />
+        </button>
+      </article>
+    </section>
+  );
+}
+
+function RoadmapsView({
+  objectives,
+  value,
+  error,
+  isGenerating,
+  hasByoKey,
+  onChange,
+  onSubmit,
+}) {
+  return (
+    <section className="view-page">
+      <ViewHeader
+        eyebrow="Roadmaps"
+        title="Turn goals into owned work."
+        body="AICOS keeps the full execution plan here, with owners, dates, status, confidence, and the assumptions you need to confirm."
+      />
+      <RoadmapBoard
+        objectives={objectives}
+        value={value}
+        error={error}
+        isGenerating={isGenerating}
+        hasByoKey={hasByoKey}
+        onChange={onChange}
+        onSubmit={onSubmit}
+      />
+    </section>
+  );
+}
+
+function AccessView({ persona, onRequestAccess }) {
+  return (
+    <section className="view-page">
+      <ViewHeader
+        eyebrow="Access & walls"
+        title="Use granted context, respect the boundaries."
+        body="This view shows what AICOS can read, what is deliberately off-limits, and where it needs a human account manager to grant more context."
+      />
+      <div className="access-view-shell">
+        <AccessPanel persona={persona} onRequestAccess={onRequestAccess} />
+      </div>
+    </section>
+  );
+}
+
+function ChatView({ messages, input, isThinking, onInput, onSend }) {
+  return (
+    <section className="view-page">
+      <ViewHeader
+        eyebrow="Talk to AICOS"
+        title="Ask questions without losing the trust layer."
+        body="Starter prompts stay reliable for the demo, and free-form questions are handled honestly when the answer would need live model context."
+      />
+      <div className="chat-view-shell">
+        <ChatPanel
+          messages={messages}
+          input={input}
+          isThinking={isThinking}
+          onInput={onInput}
+          onSend={onSend}
+        />
+      </div>
+    </section>
+  );
+}
+
+function ViewHeader({ eyebrow, title, body }) {
+  return (
+    <header className="view-header">
+      <p className="eyebrow">{eyebrow}</p>
+      <h1>{title}</h1>
+      <p>{body}</p>
+    </header>
   );
 }
 
@@ -946,14 +1127,17 @@ function RequestAccessModal({ scope, onClose }) {
 
 function GuidedTour({ step, index, total, onBack, onNext, onSkip }) {
   useEffect(() => {
-    document.querySelectorAll("[data-tour]").forEach((node) => {
-      node.classList.toggle("tour-highlight", node.getAttribute("data-tour") === step.target);
-    });
-    document.querySelector(`[data-tour="${step.target}"]`)?.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
+    const timer = window.setTimeout(() => {
+      document.querySelectorAll("[data-tour]").forEach((node) => {
+        node.classList.toggle("tour-highlight", node.getAttribute("data-tour") === step.target);
+      });
+      document.querySelector(`[data-tour="${step.target}"]`)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 80);
     return () => {
+      window.clearTimeout(timer);
       document.querySelectorAll("[data-tour]").forEach((node) => node.classList.remove("tour-highlight"));
     };
   }, [step]);
