@@ -682,8 +682,8 @@ function PrepDeskView({
     <section className="view-page">
       <ViewHeader
         eyebrow="Prep Desk"
-        title="Stage the next leadership actions."
-        body="AICOS stages deck review, meeting prep, nudge requests, and follow-up scheduling for approval. In this prototype, these are simulated flows; nothing edits a deck, sends a message, or touches a calendar."
+        title="Review, stage, and complete the next actions."
+        body="AICOS prepares the work, you stage it, then you complete the simulated outcome. Nothing edits a deck, sends a message, or touches a calendar unless you choose the final prototype action."
       />
       <section className="panel prep-desk">
         <div className="panel-heading">
@@ -702,7 +702,8 @@ function PrepDeskView({
               key={item.id}
               state={prepStates[item.id] ?? "open"}
               edit={getPrepEdit(item, prepEdits[item.id])}
-              onResolve={() => onPrepState(item.id, "approved")}
+              onResolve={() => onPrepState(item.id, "staged")}
+              onCommit={() => onPrepState(item.id, "completed")}
               onEdit={(patch) => onPrepEdit(item.id, patch)}
               onReset={() => onPrepReset(item.id)}
               onOpenEditor={() => onEditPrep(item)}
@@ -715,15 +716,29 @@ function PrepDeskView({
   );
 }
 
-function PrepDeskCard({ item, state, edit, onResolve, onEdit, onReset, onOpenEditor, onRequestAccess }) {
-  const isResolved = state !== "open";
+function PrepDeskCard({
+  item,
+  state,
+  edit,
+  onResolve,
+  onCommit,
+  onEdit,
+  onReset,
+  onOpenEditor,
+  onRequestAccess,
+}) {
+  const isOpen = state === "open";
+  const isStaged = state === "staged" || state === "approved";
+  const isCompleted = state === "completed";
+  const isResolved = !isOpen;
   const usesInlineDraft = item.actionType === "nudge_request";
   const usesInlineSchedule = item.actionType === "schedule_followup";
   const usesModalEditor = ["meeting_prep", "deck_review"].includes(item.actionType);
+  const commitMeta = getPrepCommitMeta(item);
   const details = splitEditLines(edit.detailsText);
 
   return (
-    <article className={`prep-card ${isResolved ? "resolved" : ""}`}>
+    <article className={`prep-card ${isResolved ? "resolved" : ""} ${isCompleted ? "completed" : ""}`}>
       <div className="prep-card-head">
         <div className="prep-card-tags">
           <ActionTypeBadge actionType={item.actionType} />
@@ -734,7 +749,7 @@ function PrepDeskCard({ item, state, edit, onResolve, onEdit, onReset, onOpenEdi
         </div>
         {isResolved && (
           <span className="prep-resolved">
-            <Check size={14} /> Staged
+            <Check size={14} /> {isCompleted ? "Completed" : "Ready"}
           </span>
         )}
       </div>
@@ -750,7 +765,7 @@ function PrepDeskCard({ item, state, edit, onResolve, onEdit, onReset, onOpenEdi
         </ul>
       )}
 
-      {usesInlineSchedule && !isResolved && (
+      {usesInlineSchedule && isOpen && (
         <label className="editable-field">
           Editable schedule notes
           <textarea
@@ -761,7 +776,7 @@ function PrepDeskCard({ item, state, edit, onResolve, onEdit, onReset, onOpenEdi
         </label>
       )}
 
-      {item.draft && usesInlineDraft && !isResolved && (
+      {item.draft && usesInlineDraft && isOpen && (
         <EditableDraftBody
           label={item.draft.label}
           value={edit.draftBody}
@@ -777,22 +792,34 @@ function PrepDeskCard({ item, state, edit, onResolve, onEdit, onReset, onOpenEdi
       )}
 
       <div className="button-row">
-        {isResolved ? (
+        {isStaged && (
           <div className="prep-confirmation">
             <Check size={15} />
-            {item.resolvedLabel}
+            {commitMeta.readyLabel}
           </div>
-        ) : (
+        )}
+        {isCompleted && (
+          <div className="prep-confirmation completed">
+            <Check size={15} />
+            {commitMeta.completeLabel}
+          </div>
+        )}
+        {isOpen && (
           <button className="btn btn-primary" onClick={onResolve}>
             <Check size={15} /> {item.actionLabel}
           </button>
         )}
-        {!isResolved && usesModalEditor && (
+        {isStaged && (
+          <button className="btn btn-primary" onClick={onCommit}>
+            <Check size={15} /> {commitMeta.commitLabel}
+          </button>
+        )}
+        {isOpen && usesModalEditor && (
           <button className="btn btn-ghost" onClick={onOpenEditor}>
             {item.actionType === "deck_review" ? "Edit checklist" : "Edit agenda"}
           </button>
         )}
-        {!isResolved && (item.draft || usesInlineSchedule || usesModalEditor) && (
+        {isOpen && (item.draft || usesInlineSchedule || usesModalEditor) && (
           <button className="tiny-link" onClick={onReset}>
             Reset edits
           </button>
@@ -899,6 +926,43 @@ function getPrepEdit(item, edit) {
     detailsText: edit?.detailsText ?? (item.details ?? []).join("\n"),
     draftBody: edit?.draftBody ?? item.draft?.body ?? "",
     followUpNote: edit?.followUpNote ?? item.editFields?.followUpNote ?? "",
+  };
+}
+
+function getPrepCommitMeta(item) {
+  const owner = item.title.includes("1:1") ? "agenda" : "item";
+  const labels = {
+    nudge_request: {
+      readyLabel: "Ready to send. You reviewed this nudge; AICOS has not sent anything.",
+      commitLabel: "Mark sent",
+      completeLabel: "Nudge marked sent in prototype. No real message was sent.",
+    },
+    schedule_followup: {
+      readyLabel: "Ready to create. You reviewed this hold; AICOS has not touched a calendar.",
+      commitLabel: "Create calendar hold",
+      completeLabel: "Calendar hold created in prototype. No real calendar was updated.",
+    },
+    deck_review: {
+      readyLabel: "Ready to apply. You reviewed these notes; AICOS has not changed a deck.",
+      commitLabel: "Apply review notes",
+      completeLabel: "Deck notes applied in prototype. No real document was edited.",
+    },
+    meeting_prep: {
+      readyLabel: `Ready to save. You reviewed this ${owner}; AICOS has not updated any workspace.`,
+      commitLabel: "Save agenda",
+      completeLabel: "Agenda saved in prototype. No private notes or external systems were updated.",
+    },
+    adoption_note: {
+      readyLabel: "Ready to record. You reviewed this adoption note.",
+      commitLabel: "Record note",
+      completeLabel: "Adoption note recorded in prototype. No external system was updated.",
+    },
+  };
+
+  return labels[item.actionType] ?? {
+    readyLabel: "Ready to complete in prototype.",
+    commitLabel: "Complete",
+    completeLabel: "Completed in prototype. No external system was updated.",
   };
 }
 
@@ -1058,7 +1122,12 @@ function BriefingSection({
                 edit={getDraftEdit(item, draftEdits[item.id])}
                 onEdit={(patch) => onDraftEdit(item.id, patch)}
                 onReset={() => onDraftReset(item.id)}
-                onApprove={() => onDraftState(item.id, "approved")}
+                onApprove={() =>
+                  onDraftState(
+                    item.id,
+                    ["staged", "approved"].includes(draftStates[item.id]) ? "completed" : "staged",
+                  )
+                }
                 onDismiss={() => onDraftState(item.id, "dismissed")}
                 onRequestAccess={onRequestAccess}
               />
@@ -1071,13 +1140,34 @@ function BriefingSection({
 }
 
 function DraftCard({ item, state, edit, onEdit, onReset, onApprove, onDismiss, onRequestAccess }) {
-  if (state !== "open") {
+  if (state === "dismissed") {
     return (
       <div className="draft-card resolved">
         <Check size={15} />
-        {state === "approved"
-          ? "Edited draft staged. AICOS will wait for you to send it."
-          : "Draft dismissed. AICOS will leave it untouched."}
+        Draft dismissed. AICOS will leave it untouched.
+      </div>
+    );
+  }
+
+  if (state === "staged" || state === "approved") {
+    return (
+      <div className="draft-card resolved">
+        <div className="commit-copy">
+          <Check size={15} />
+          <span>Ready to send. You reviewed this draft; AICOS has not sent anything.</span>
+        </div>
+        <button className="btn btn-primary" onClick={onApprove}>
+          <Check size={15} /> Mark sent
+        </button>
+      </div>
+    );
+  }
+
+  if (state === "completed") {
+    return (
+      <div className="draft-card resolved completed">
+        <Check size={15} />
+        Sent in prototype. No real message was sent.
       </div>
     );
   }

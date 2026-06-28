@@ -231,7 +231,7 @@ export const personas = [
               "Could each initiative lead add a one-line status, blocker, and external-facing update before Wednesday's sweep? I want the newsroom to reflect current work without creating extra reporting overhead.",
           },
           actionLabel: "Stage schedule",
-          resolvedLabel: "Schedule staged. AICOS will wait for Claudia to send the invite and reminder.",
+          resolvedLabel: "Ready for Claudia to create the calendar hold.",
           secondaryAction: {
             label: "Request access",
             scope: "Channel where initiative-lead status collection moved",
@@ -256,7 +256,7 @@ export const personas = [
               "Use the sweep to confirm whether the work moved off Loop, collect each initiative lead's status/blocker/update, and assign one owner to refresh the newsroom source by Friday.",
           },
           actionLabel: "Approve prep",
-          resolvedLabel: "Meeting prep approved. AICOS will keep the agenda staged for Claudia.",
+          resolvedLabel: "Ready for Claudia to save the agenda.",
         },
         {
           id: "claudia-style-nudge",
@@ -277,7 +277,7 @@ export const personas = [
               "Hi — the unified engagement program is ready to move except for style-guide alignment. Could you confirm sign-off by Thursday, or flag what's outstanding? Happy to jump on a 15-minute call if that's faster.",
           },
           actionLabel: "Stage nudge",
-          resolvedLabel: "Nudge staged. AICOS will wait for Claudia before anything is sent.",
+          resolvedLabel: "Ready for Claudia to mark the nudge sent.",
         },
         {
           id: "claudia-team-adoption",
@@ -465,7 +465,7 @@ export const personas = [
               "Deck is directionally ready. I recommend approving style-guide cleanup on slides 4, 7, and 9, and holding slide 6 until Region C's in-person review outcome is logged.",
           },
           actionLabel: "Approve review",
-          resolvedLabel: "Review approved. AICOS will wait for Alfredo before applying or sending anything.",
+          resolvedLabel: "Ready for Alfredo to apply the review notes.",
           secondaryAction: {
             label: "Request notes",
             scope: "Region C in-person review notes for H2 deck",
@@ -484,7 +484,7 @@ export const personas = [
             "Agenda: regulator response, escalation owner, date to update Power BI.",
           ],
           actionLabel: "Stage schedule",
-          resolvedLabel: "Schedule staged. AICOS will wait for Alfredo to send the invite.",
+          resolvedLabel: "Ready for Alfredo to create the calendar hold.",
         },
         {
           id: "alfredo-regulatory-meeting-prep",
@@ -505,7 +505,7 @@ export const personas = [
               "Use this follow-up to leave with three decisions: regulator-response status, escalation owner, and the date the market lead will refresh Power BI.",
           },
           actionLabel: "Approve prep",
-          resolvedLabel: "Meeting prep approved. AICOS will keep the agenda staged for Alfredo.",
+          resolvedLabel: "Ready for Alfredo to save the agenda.",
         },
         {
           id: "alfredo-region-b-nudge",
@@ -526,7 +526,7 @@ export const personas = [
               "Where do we stand on the regulator response? If we're still waiting, let's line up an escalation path today so this doesn't slip into next month's numbers.",
           },
           actionLabel: "Stage nudge",
-          resolvedLabel: "Nudge staged. AICOS will wait for Alfredo before anything is sent.",
+          resolvedLabel: "Ready for Alfredo to mark the nudge sent.",
         },
       ],
     },
@@ -681,7 +681,7 @@ export const personas = [
               "Before leadership review: confirm the Data-vs-Platform conflict, update the milestone lock slide, and keep any 1:1-dependent commitments labeled as blind spots.",
           },
           actionLabel: "Approve checklist",
-          resolvedLabel: "Checklist approved. AICOS will keep the deck review staged until Alex applies it.",
+          resolvedLabel: "Ready for Alex to apply the checklist.",
         },
         {
           id: "alex-review-block",
@@ -697,7 +697,7 @@ export const personas = [
             "Invite: Alex only, unless he wants Data and Platform leads added after the conflict is confirmed.",
           ],
           actionLabel: "Stage schedule",
-          resolvedLabel: "Schedule staged. AICOS will wait for Alex before creating the calendar hold.",
+          resolvedLabel: "Ready for Alex to create the calendar hold.",
         },
         {
           id: "alex-priority-meeting-prep",
@@ -718,7 +718,7 @@ export const personas = [
               "Confirm whether the Data/Platform sprint overlap is real, decide which work takes priority if it is, and identify the source AICOS should use before locking milestones.",
           },
           actionLabel: "Approve prep",
-          resolvedLabel: "Meeting prep approved. AICOS will keep the agenda staged for Alex.",
+          resolvedLabel: "Ready for Alex to save the agenda.",
         },
         {
           id: "alex-privacy-one-on-one",
@@ -744,7 +744,7 @@ export const personas = [
               "After the conversation, Alex chooses whether any action item should be logged. AICOS does not infer outcomes from private 1:1s.",
           },
           actionLabel: "Approve agenda",
-          resolvedLabel: "1:1 agenda approved. AICOS will keep the edited shell staged for Alex.",
+          resolvedLabel: "Ready for Alex to save the 1:1 agenda.",
         },
         {
           id: "alex-priority-nudge",
@@ -765,7 +765,7 @@ export const personas = [
               "Two tickets look like they're competing for the same sprint capacity. Can we confirm whether that's a real conflict and, if so, which takes priority? Don't want it to stall the milestone lock.",
           },
           actionLabel: "Stage nudge",
-          resolvedLabel: "Nudge staged. AICOS will wait for Alex before anything is sent.",
+          resolvedLabel: "Ready for Alex to mark the nudge sent.",
         },
       ],
     },

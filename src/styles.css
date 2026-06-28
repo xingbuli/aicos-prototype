@@ -1949,6 +1949,11 @@ a {
   padding: 0.45rem 0.55rem;
 }
 
+.prep-confirmation.completed {
+  border-color: rgba(15, 118, 110, 0.34);
+  background: #ecfdf5;
+}
+
 .queue-table,
 .risk-table,
 .meeting-list {
@@ -2038,9 +2043,23 @@ a {
   display: flex;
   align-items: center;
   gap: 0.45rem;
+  flex-wrap: wrap;
   color: var(--purple);
   font-size: 0.74rem;
   font-weight: 750;
+}
+
+.draft-card.resolved.completed {
+  border-color: rgba(0, 140, 137, 0.3);
+  background: #f2fffd;
+  color: var(--teal-dark);
+}
+
+.commit-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: 1 1 220px;
 }
 
 .draft-label {

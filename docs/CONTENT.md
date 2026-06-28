@@ -155,14 +155,15 @@ OKR: Cut leadership-prep time below 4 hrs/week without losing visibility.
 
 ## Prep Desk — simulated first-class actions
 
-Purpose: give deck review, meeting prep, nudge requests, 1:1 agenda prep, and follow-up scheduling a visible v1 surface without pretending the prototype edits PowerPoint files, creates calendar events, reads private 1:1s, or sends messages. Every action is typed, editable where useful, staged, confidence-tagged, and approval-gated.
+Purpose: give deck review, meeting prep, nudge requests, 1:1 agenda prep, and follow-up scheduling a visible v1 surface without pretending the prototype edits PowerPoint files, creates calendar events, reads private 1:1s, or sends messages. Every action is typed, editable where useful, confidence-tagged, approval-gated, and closed with a user-controlled simulated commit.
 
 Editable behavior:
 - Briefing email/message drafts are editable inline before approval; subject lines are editable when present.
 - Prep Desk nudge requests are editable inline.
 - Meeting prep, deck review, and 1:1 agenda items open a focused edit modal for agenda/checklist text and prep brief edits.
 - Schedule follow-up items expose editable schedule notes, but do not create real calendar events.
-- All edits are local browser state in the prototype and are staged only after approval.
+- All edits are local browser state in the prototype. Approval stages the edited version; the user then chooses the final prototype action.
+- Lifecycle: `open` = editable and reviewable; `staged` = ready for the leader's final action; `completed` = simulated receipt that clearly says no external system was updated. Briefing drafts also support `dismissed`.
 
 Action types:
 - `deck_review` → **Deck Review**
@@ -171,21 +172,30 @@ Action types:
 - `schedule_followup` → **Schedule Follow-up**
 - `adoption_note` → **Adoption Note**
 
+Final commit labels:
+- `deck_review` → **Apply review notes** → "Deck notes applied in prototype. No real document was edited."
+- `meeting_prep` → **Save agenda** → "Agenda saved in prototype. No private notes or external systems were updated."
+- `nudge_request` → **Mark sent** → "Nudge marked sent in prototype. No real message was sent."
+- `schedule_followup` → **Create calendar hold** → "Calendar hold created in prototype. No real calendar was updated."
+- `adoption_note` → **Record note** → "Adoption note recorded in prototype. No external system was updated."
+- Briefing drafts → **Mark sent** → "Sent in prototype. No real message was sent."
+
 ### Claudia Prep Desk
 **Summary:** AICOS has staged the follow-up plan for the stalled newsroom status collection, including the calendar hold and reminder draft Claudia can approve before anything reaches the team.
 
 - **[Schedule Follow-up · Prepare · Blind spot] Schedule the initiative-lead status sweep.** The collection has gone quiet in Loop. I prepared a 25-minute status sweep for the coordinator and six initiative leads, but I would confirm the right channel first because this may have moved off Loop.
   - Details: Calendar hold: Wed Jul 8, 10:30 AM. Invitees: Coordinator plus six initiative leads. Reminder asks for one-line status, blocker, and external-facing update.
   - Draft: "Could each initiative lead add a one-line status, blocker, and external-facing update before Wednesday's sweep? I want the newsroom to reflect current work without creating extra reporting overhead."
-  - Action: **Stage schedule** → "Schedule staged. AICOS will wait for Claudia to send the invite and reminder."
+  - Action: **Stage schedule** → "Ready for Claudia to create the calendar hold."
 - **[Meeting Prep · Prepare · inferred] Prep the status-sweep agenda.** I drafted a short agenda that keeps the initiative-lead sweep focused on blockers, external-facing updates, and who owns the next Loop refresh.
   - Details: Open by confirming whether status collection moved outside Loop. Round-robin on status, blocker, and next date. Close by confirming who updates the newsroom source by Friday.
-  - Action: **Approve prep** → "Meeting prep approved. AICOS will keep the agenda staged for Claudia."
+  - Action: **Approve prep** → "Ready for Claudia to save the agenda."
 - **[Nudge Request · Blocker · verified] Draft nudge for Corporate Comms sign-off.** The style-guide sign-off is still the critical-path blocker. I prepared a short nudge Claudia can approve before it goes to Corporate Comms.
   - Draft: "Hi — the unified engagement program is ready to move except for style-guide alignment. Could you confirm sign-off by Thursday, or flag what's outstanding? Happy to jump on a 15-minute call if that's faster."
-  - Action: **Stage nudge** → "Nudge staged. AICOS will wait for Claudia before anything is sent."
+  - Action: **Stage nudge** → "Ready for Claudia to mark the nudge sent."
 - **[Adoption Note · Needs attention · inferred] Adoption note: support the team, don't replace the team.** For Claudia's rollout, AICOS should be introduced as a team coordination layer with human setup and training, not as a silent substitute for coordinators or project leads.
   - Details: Team mode is a v1 adoption requirement, not a hidden automation promise. Role-impact concerns should be addressed in onboarding materials and account-manager setup. AICOS drafts and stages work; Claudia still decides what reaches the team.
+  - Action: **Acknowledge** → "Ready for Claudia to record the adoption note."
 
 ### Alfredo Prep Desk
 **Summary:** AICOS reviewed the H2 market deck as a staged briefing item: style issues are ready to approve, while Region C remains a blind spot until the in-person review notes are logged.
@@ -193,15 +203,16 @@ Action types:
 - **[Deck Review · Prepare · Blind spot] Review the H2 market update deck.** I found three slides that drift from the corporate style guide and one Region C chart that depends on context I can't see from the in-person account review.
   - Details: Slides 4, 7, and 9 need title-case and metric-label cleanup. Slide 6 uses Region C pipeline status from Power BI before the in-person review was logged. Recommended fix: approve the style edits now, then ask the Region C lead to add review notes before finalizing the chart.
   - Draft: "Deck is directionally ready. I recommend approving style-guide cleanup on slides 4, 7, and 9, and holding slide 6 until Region C's in-person review outcome is logged."
-  - Action: **Approve review** → "Review approved. AICOS will wait for Alfredo before applying or sending anything."
+  - Action: **Approve review** → "Ready for Alfredo to apply the review notes."
 - **[Schedule Follow-up · Needs attention · inferred] Stage a 30-minute regulatory follow-up.** Region B is the true blocker. I prepared a short follow-up with the market lead so the escalation path is clear before next month's numbers close.
   - Details: Suggested slot: Thu Jul 2, 2:00 PM. Agenda: regulator response, escalation owner, date to update Power BI.
+  - Action: **Stage schedule** → "Ready for Alfredo to create the calendar hold."
 - **[Meeting Prep · Prepare · verified] Prep the Region B regulatory follow-up.** I prepared the agenda Alfredo needs for the Region B market lead so the meeting produces a concrete escalation path, not another status check.
   - Details: Confirm the latest regulator response, name the escalation owner, and decide when Power BI will be updated.
-  - Action: **Approve prep** → "Meeting prep approved. AICOS will keep the agenda staged for Alfredo."
+  - Action: **Approve prep** → "Ready for Alfredo to save the agenda."
 - **[Nudge Request · Blocker · verified] Draft nudge for the Region B market lead.** The regulatory delay is still the highest-leverage issue. I drafted a nudge that asks for status and an escalation path without over-reporting the risk.
   - Draft: "Where do we stand on the regulator response? If we're still waiting, let's line up an escalation path today so this doesn't slip into next month's numbers."
-  - Action: **Stage nudge** → "Nudge staged. AICOS will wait for Alfredo before anything is sent."
+  - Action: **Stage nudge** → "Ready for Alfredo to mark the nudge sent."
 
 ### Alex Prep Desk
 **Summary:** AICOS has staged Alex's monthly review deck prep and a 30-minute review block so leadership prep stays below four hours without losing blocker visibility.
@@ -209,18 +220,20 @@ Action types:
 - **[Deck Review · Prepare · verified] Prep the monthly review deck.** The shared deck template is current. I prepared a review pass focused on blocker clarity, partner-team commitments, and whether inferred Jira conflicts are labeled as inferred.
   - Details: Deck section to review: H2 roadmap milestones. Style pass: keep blocker labels consistent across Data, Platform, and partner-team slides. Trust note: mark the Data-vs-Platform conflict as inferred until both leads confirm it.
   - Draft: "Before leadership review: confirm the Data-vs-Platform conflict, update the milestone lock slide, and keep any 1:1-dependent commitments labeled as blind spots."
+  - Action: **Approve checklist** → "Ready for Alex to apply the checklist."
 - **[Schedule Follow-up · Prepare · inferred] Schedule the 30-minute deck review block.** I found a midweek hold that protects Alex's prep target. The block is staged, not sent, and it includes the specific deck sections to review.
   - Details: Suggested slot: Wed Jul 1, 3:30 PM. Goal: keep leadership prep under four hours while preserving blocker visibility. Invite: Alex only, unless he wants Data and Platform leads added after the conflict is confirmed.
+  - Action: **Stage schedule** → "Ready for Alex to create the calendar hold."
 - **[Meeting Prep · Prepare · inferred] Prep the Data/Platform priority-confirmation meeting.** I prepared a five-minute agenda to test whether the Jira overlap is a real conflict before Alex treats it as a blocker.
   - Details: Open with the two Jira tickets, ask whether the capacity conflict is real, and end with the milestone-lock owner/source of truth.
-  - Action: **Approve prep** → "Meeting prep approved. AICOS will keep the agenda staged for Alex."
+  - Action: **Approve prep** → "Ready for Alex to save the agenda."
 - **[Meeting Prep · Prepare · Blind spot] Prep privacy-safe 1:1 agenda.** AICOS does not read Alex's 1:1 recordings, private notes, or conversation history. It can stage an agenda shell that Alex edits with the context he wants to bring.
   - Details: Create a lightweight agenda without pulling private 1:1 content. Include wins, blockers, commitments Alex wants to confirm, and anything that should stay out of systems.
   - Modal fields: meeting goal, 1:1 agenda bullets, 1:1 agenda shell, follow-up note.
-  - Action: **Approve agenda** → "1:1 agenda approved. AICOS will keep the edited shell staged for Alex."
+  - Action: **Approve agenda** → "Ready for Alex to save the 1:1 agenda."
 - **[Nudge Request · Blocker · inferred] Draft nudge for Data and Platform leads.** Because the conflict is inferred, the nudge asks for confirmation instead of treating the overlap as settled fact.
   - Draft: "Two tickets look like they're competing for the same sprint capacity. Can we confirm whether that's a real conflict and, if so, which takes priority? Don't want it to stall the milestone lock."
-  - Action: **Stage nudge** → "Nudge staged. AICOS will wait for Alex before anything is sent."
+  - Action: **Stage nudge** → "Ready for Alex to mark the nudge sent."
 
 ---
 
