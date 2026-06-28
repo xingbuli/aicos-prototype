@@ -62,6 +62,7 @@ const STORAGE_KEYS = {
 const VIEWS = {
   home: "Home",
   roadmaps: "Roadmaps",
+  prep: "Prep Desk",
   access: "Context access",
   chat: "Talk to AICOS",
 };
@@ -204,6 +205,7 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
   const [objectiveError, setObjectiveError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [draftStates, setDraftStates] = useState({});
+  const [prepStates, setPrepStates] = useState({});
   const [chatMessages, setChatMessages] = useState([
     {
       id: "hello",
@@ -222,6 +224,7 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
     setObjectiveText(persona.objectivePrompt);
     setObjectiveError("");
     setDraftStates({});
+    setPrepStates({});
     setChatInput("");
     setActiveView(VIEWS.home);
     setChatMessages([
@@ -297,6 +300,10 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
     setDraftStates((current) => ({ ...current, [itemId]: state }));
   }
 
+  function setPrepState(itemId, state) {
+    setPrepStates((current) => ({ ...current, [itemId]: state }));
+  }
+
   async function sendChat(prompt) {
     const text = prompt.trim();
     if (!text) return;
@@ -360,6 +367,15 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
             />
           )}
 
+          {activeView === VIEWS.prep && (
+            <PrepDeskView
+              persona={persona}
+              prepStates={prepStates}
+              onPrepState={setPrepState}
+              onRequestAccess={onRequestAccess}
+            />
+          )}
+
           {activeView === VIEWS.access && (
             <AccessView persona={persona} onRequestAccess={onRequestAccess} />
           )}
@@ -388,6 +404,7 @@ function Sidebar({ persona, activeView, onNavigate, onHelp, onSettings, onSignOu
   const navItems = [
     { label: VIEWS.home, icon: Home, view: VIEWS.home },
     { label: VIEWS.roadmaps, icon: Map, view: VIEWS.roadmaps },
+    { label: VIEWS.prep, icon: FileText, view: VIEWS.prep },
     { label: VIEWS.access, icon: ShieldCheck, view: VIEWS.access },
     { label: VIEWS.chat, icon: MessageSquare, view: VIEWS.chat },
     { label: "How it works", icon: HelpCircle, action: "help" },
@@ -574,6 +591,96 @@ function RoadmapsView({
         onSubmit={onSubmit}
       />
     </section>
+  );
+}
+
+function PrepDeskView({ persona, prepStates, onPrepState, onRequestAccess }) {
+  return (
+    <section className="view-page">
+      <ViewHeader
+        eyebrow="Prep Desk"
+        title="Review decks and schedule follow-through."
+        body="AICOS stages deck review notes, meeting prep, and follow-up scheduling for approval. In this prototype, these are simulated flows; nothing edits a deck or touches a calendar."
+      />
+      <section className="panel prep-desk">
+        <div className="panel-heading">
+          <div>
+            <h2><FileText size={16} /> Prepared work</h2>
+            <div className="panel-subline">
+              <span>{persona.prepDesk.summary}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="prep-grid">
+          {persona.prepDesk.items.map((item) => (
+            <PrepDeskCard
+              item={item}
+              key={item.id}
+              state={prepStates[item.id] ?? "open"}
+              onResolve={() => onPrepState(item.id, "approved")}
+              onRequestAccess={onRequestAccess}
+            />
+          ))}
+        </div>
+      </section>
+    </section>
+  );
+}
+
+function PrepDeskCard({ item, state, onResolve, onRequestAccess }) {
+  const isResolved = state !== "open";
+
+  return (
+    <article className={`prep-card ${isResolved ? "resolved" : ""}`}>
+      <div className="prep-card-head">
+        <div className="item-tags">
+          <KindBadge kind={item.kind} />
+          <ConfidenceTag confidence={item.confidence} />
+        </div>
+        {isResolved && (
+          <span className="prep-resolved">
+            <Check size={14} /> Staged
+          </span>
+        )}
+      </div>
+
+      <h3>{item.title}</h3>
+      <p>{item.body}</p>
+
+      {item.details?.length > 0 && (
+        <ul className="prep-detail-list">
+          {item.details.map((detail) => (
+            <li key={detail}>{detail}</li>
+          ))}
+        </ul>
+      )}
+
+      {item.draft && (
+        <div className="prep-draft">
+          <span>{item.draft.label}</span>
+          <p>{item.draft.body}</p>
+        </div>
+      )}
+
+      <div className="button-row">
+        {isResolved ? (
+          <div className="prep-confirmation">
+            <Check size={15} />
+            {item.resolvedLabel}
+          </div>
+        ) : (
+          <button className="btn btn-primary" onClick={onResolve}>
+            <Check size={15} /> {item.actionLabel}
+          </button>
+        )}
+        {item.secondaryAction && (
+          <button className="tiny-link" onClick={() => onRequestAccess(item.secondaryAction.scope)}>
+            {item.secondaryAction.label}
+          </button>
+        )}
+      </div>
+    </article>
   );
 }
 

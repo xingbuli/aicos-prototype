@@ -208,6 +208,51 @@ export const personas = [
         },
       ],
     },
+    prepDesk: {
+      summary:
+        "AICOS has staged the follow-up plan for the stalled newsroom status collection, including the calendar hold and reminder draft Claudia can approve before anything reaches the team.",
+      items: [
+        {
+          id: "claudia-status-followup",
+          kind: "prep",
+          confidence: "unknown",
+          title: "Schedule the initiative-lead status sweep.",
+          body:
+            "The collection has gone quiet in Loop. I prepared a 25-minute status sweep for the coordinator and six initiative leads, but I would confirm the right channel first because this may have moved off Loop.",
+          details: [
+            "Calendar hold: Wed Jul 8, 10:30 AM.",
+            "Invitees: Coordinator plus six initiative leads.",
+            "Reminder asks for one-line status, blocker, and external-facing update.",
+          ],
+          draft: {
+            label: "Reminder draft",
+            body:
+              "Could each initiative lead add a one-line status, blocker, and external-facing update before Wednesday's sweep? I want the newsroom to reflect current work without creating extra reporting overhead.",
+          },
+          actionLabel: "Stage schedule",
+          resolvedLabel: "Schedule staged. AICOS will wait for Claudia to send the invite and reminder.",
+          secondaryAction: {
+            label: "Request access",
+            scope: "Channel where initiative-lead status collection moved",
+          },
+        },
+        {
+          id: "claudia-team-adoption",
+          kind: "attention",
+          confidence: "inferred",
+          title: "Adoption note: support the team, don't replace the team.",
+          body:
+            "For Claudia's rollout, AICOS should be introduced as a team coordination layer with human setup and training, not as a silent substitute for coordinators or project leads.",
+          details: [
+            "Team mode is a v1 adoption requirement, not a hidden automation promise.",
+            "Role-impact concerns should be addressed in onboarding materials and account-manager setup.",
+            "AICOS drafts and stages work; Claudia still decides what reaches the team.",
+          ],
+          actionLabel: "Acknowledge",
+          resolvedLabel: "Adoption concern acknowledged for onboarding and team-mode rollout.",
+        },
+      ],
+    },
     chatReplies: {
       "What should I focus on today?":
         "One thing, really: the style-guide sign-off from Corporate. It's the only item on your critical path — everything else is either moving or just quiet. I've drafted a sign-off nudge in your briefing; approve it and it's ready to send.",
@@ -353,6 +398,50 @@ export const personas = [
         },
       ],
     },
+    prepDesk: {
+      summary:
+        "AICOS reviewed the H2 market deck as a staged briefing item: style issues are ready to approve, while Region C remains a blind spot until the in-person review notes are logged.",
+      items: [
+        {
+          id: "alfredo-h2-deck",
+          kind: "prep",
+          confidence: "unknown",
+          title: "Review the H2 market update deck.",
+          body:
+            "I found three slides that drift from the corporate style guide and one Region C chart that depends on context I can't see from the in-person account review.",
+          details: [
+            "Slides 4, 7, and 9 need title-case and metric-label cleanup.",
+            "Slide 6 uses Region C pipeline status from Power BI before the in-person review was logged.",
+            "Recommended fix: approve the style edits now, then ask the Region C lead to add review notes before finalizing the chart.",
+          ],
+          draft: {
+            label: "Deck review brief",
+            body:
+              "Deck is directionally ready. I recommend approving style-guide cleanup on slides 4, 7, and 9, and holding slide 6 until Region C's in-person review outcome is logged.",
+          },
+          actionLabel: "Approve review",
+          resolvedLabel: "Review approved. AICOS will wait for Alfredo before applying or sending anything.",
+          secondaryAction: {
+            label: "Request notes",
+            scope: "Region C in-person review notes for H2 deck",
+          },
+        },
+        {
+          id: "alfredo-followup",
+          kind: "attention",
+          confidence: "inferred",
+          title: "Stage a 30-minute regulatory follow-up.",
+          body:
+            "Region B is the true blocker. I prepared a short follow-up with the market lead so the escalation path is clear before next month's numbers close.",
+          details: [
+            "Suggested slot: Thu Jul 2, 2:00 PM.",
+            "Agenda: regulator response, escalation owner, date to update Power BI.",
+          ],
+          actionLabel: "Stage schedule",
+          resolvedLabel: "Schedule staged. AICOS will wait for Alfredo to send the invite.",
+        },
+      ],
+    },
     chatReplies: {
       "What should I focus on today?":
         "Region B's regulatory delay. It's your biggest risk to the H2 plan and it's the one place your push changes the outcome. Region C looks stale, but you reviewed it in person — I'm not counting that as a miss.",
@@ -478,6 +567,47 @@ export const personas = [
           title: "I can see your roadmap, not your 1:1s — by design.",
           body:
             "Some partner commitments may have been made in 1:1s. You don't record those and I don't read them, so if a milestone depends on a conversation I can't see, I'll flag the gap rather than guess.",
+        },
+      ],
+    },
+    prepDesk: {
+      summary:
+        "AICOS has staged Alex's monthly review deck prep and a 30-minute review block so leadership prep stays below four hours without losing blocker visibility.",
+      items: [
+        {
+          id: "alex-monthly-deck",
+          kind: "prep",
+          confidence: "verified",
+          title: "Prep the monthly review deck.",
+          body:
+            "The shared deck template is current. I prepared a review pass focused on blocker clarity, partner-team commitments, and whether inferred Jira conflicts are labeled as inferred.",
+          details: [
+            "Deck section to review: H2 roadmap milestones.",
+            "Style pass: keep blocker labels consistent across Data, Platform, and partner-team slides.",
+            "Trust note: mark the Data-vs-Platform conflict as inferred until both leads confirm it.",
+          ],
+          draft: {
+            label: "Review checklist",
+            body:
+              "Before leadership review: confirm the Data-vs-Platform conflict, update the milestone lock slide, and keep any 1:1-dependent commitments labeled as blind spots.",
+          },
+          actionLabel: "Approve checklist",
+          resolvedLabel: "Checklist approved. AICOS will keep the deck review staged until Alex applies it.",
+        },
+        {
+          id: "alex-review-block",
+          kind: "prep",
+          confidence: "inferred",
+          title: "Schedule the 30-minute deck review block.",
+          body:
+            "I found a midweek hold that protects Alex's prep target. The block is staged, not sent, and it includes the specific deck sections to review.",
+          details: [
+            "Suggested slot: Wed Jul 1, 3:30 PM.",
+            "Goal: keep leadership prep under four hours while preserving blocker visibility.",
+            "Invite: Alex only, unless he wants Data and Platform leads added after the conflict is confirmed.",
+          ],
+          actionLabel: "Stage schedule",
+          resolvedLabel: "Schedule staged. AICOS will wait for Alex before creating the calendar hold.",
         },
       ],
     },

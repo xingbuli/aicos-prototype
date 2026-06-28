@@ -153,6 +153,41 @@ OKR: Cut leadership-prep time below 4 hrs/week without losing visibility.
 
 ---
 
+## Prep Desk — simulated deck review and scheduling
+
+Purpose: give slide-deck review and follow-up scheduling a visible v1 surface without pretending the prototype edits PowerPoint files or creates calendar events. Every action is staged; the leader approves before anything is sent, scheduled, or applied.
+
+### Claudia Prep Desk
+**Summary:** AICOS has staged the follow-up plan for the stalled newsroom status collection, including the calendar hold and reminder draft Claudia can approve before anything reaches the team.
+
+- **[Prepare · Blind spot] Schedule the initiative-lead status sweep.** The collection has gone quiet in Loop. I prepared a 25-minute status sweep for the coordinator and six initiative leads, but I would confirm the right channel first because this may have moved off Loop.
+  - Details: Calendar hold: Wed Jul 8, 10:30 AM. Invitees: Coordinator plus six initiative leads. Reminder asks for one-line status, blocker, and external-facing update.
+  - Draft: "Could each initiative lead add a one-line status, blocker, and external-facing update before Wednesday's sweep? I want the newsroom to reflect current work without creating extra reporting overhead."
+  - Action: **Stage schedule** → "Schedule staged. AICOS will wait for Claudia to send the invite and reminder."
+- **[Needs attention · inferred] Adoption note: support the team, don't replace the team.** For Claudia's rollout, AICOS should be introduced as a team coordination layer with human setup and training, not as a silent substitute for coordinators or project leads.
+  - Details: Team mode is a v1 adoption requirement, not a hidden automation promise. Role-impact concerns should be addressed in onboarding materials and account-manager setup. AICOS drafts and stages work; Claudia still decides what reaches the team.
+
+### Alfredo Prep Desk
+**Summary:** AICOS reviewed the H2 market deck as a staged briefing item: style issues are ready to approve, while Region C remains a blind spot until the in-person review notes are logged.
+
+- **[Prepare · Blind spot] Review the H2 market update deck.** I found three slides that drift from the corporate style guide and one Region C chart that depends on context I can't see from the in-person account review.
+  - Details: Slides 4, 7, and 9 need title-case and metric-label cleanup. Slide 6 uses Region C pipeline status from Power BI before the in-person review was logged. Recommended fix: approve the style edits now, then ask the Region C lead to add review notes before finalizing the chart.
+  - Draft: "Deck is directionally ready. I recommend approving style-guide cleanup on slides 4, 7, and 9, and holding slide 6 until Region C's in-person review outcome is logged."
+  - Action: **Approve review** → "Review approved. AICOS will wait for Alfredo before applying or sending anything."
+- **[Needs attention · inferred] Stage a 30-minute regulatory follow-up.** Region B is the true blocker. I prepared a short follow-up with the market lead so the escalation path is clear before next month's numbers close.
+  - Details: Suggested slot: Thu Jul 2, 2:00 PM. Agenda: regulator response, escalation owner, date to update Power BI.
+
+### Alex Prep Desk
+**Summary:** AICOS has staged Alex's monthly review deck prep and a 30-minute review block so leadership prep stays below four hours without losing blocker visibility.
+
+- **[Prepare · verified] Prep the monthly review deck.** The shared deck template is current. I prepared a review pass focused on blocker clarity, partner-team commitments, and whether inferred Jira conflicts are labeled as inferred.
+  - Details: Deck section to review: H2 roadmap milestones. Style pass: keep blocker labels consistent across Data, Platform, and partner-team slides. Trust note: mark the Data-vs-Platform conflict as inferred until both leads confirm it.
+  - Draft: "Before leadership review: confirm the Data-vs-Platform conflict, update the milestone lock slide, and keep any 1:1-dependent commitments labeled as blind spots."
+- **[Prepare · inferred] Schedule the 30-minute deck review block.** I found a midweek hold that protects Alex's prep target. The block is staged, not sent, and it includes the specific deck sections to review.
+  - Details: Suggested slot: Wed Jul 1, 3:30 PM. Goal: keep leadership prep under four hours while preserving blocker visibility. Invite: Alex only, unless he wants Data and Platform leads added after the conflict is confirmed.
+
+---
+
 ## Chat ("Talk to AICOS") — curated replies
 
 Show 3 starter chips. Each returns the persona-aware reply below. Keep replies short, warm, plain.
