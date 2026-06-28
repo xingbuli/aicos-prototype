@@ -214,8 +214,8 @@ function SignIn({ onEnter }) {
         </p>
       </section>
 
-      <section className="workspace-picker" aria-label="Choose an account to sign in">
-        <p className="eyebrow">Choose an account to sign in.</p>
+      <section className="workspace-picker" aria-label="Choose a workspace to enter">
+        <p className="eyebrow">Choose a workspace to enter.</p>
         <div className="workspace-cards">
           {personas.map((persona) => (
             <button
@@ -230,12 +230,14 @@ function SignIn({ onEnter }) {
                 </small>
               </span>
               <span className="card-action">
-                Set up {persona.name.split(" ")[0]} <ArrowRight size={16} />
+                Continue as {persona.name.split(" ")[0]} <ArrowRight size={16} />
               </span>
             </button>
           ))}
         </div>
-        <p className="prototype-footnote">Demo sign-in · simulated accounts · no real data.</p>
+        <p className="prototype-footnote">
+          Interactive prototype · simulated workspace · no real data.
+        </p>
       </section>
     </main>
   );
@@ -1834,7 +1836,7 @@ function RequestAccessModal({ scope, onClose }) {
 
   useEffect(() => {
     if (!sent) return undefined;
-    const timer = window.setTimeout(onClose, 1800);
+    const timer = window.setTimeout(onClose, 3200);
     return () => window.clearTimeout(timer);
   }, [sent, onClose]);
 
@@ -1845,7 +1847,7 @@ function RequestAccessModal({ scope, onClose }) {
           <Check size={22} />
           <p>
             {
-              "Request sent to the AICOS team. You can track updates here, and AICOS won't access anything until it is granted."
+              "Request sent to your AICOS account manager. You can track updates here, and AICOS won't access anything until it is granted."
             }
           </p>
         </div>
@@ -1853,7 +1855,7 @@ function RequestAccessModal({ scope, onClose }) {
         <>
           <p className="modal-intro">
             {
-              "AICOS won't reach into anything you haven't granted. Describe what you'd like it to see, and the AICOS team will take it from here."
+              "AICOS won't reach into anything you haven't granted. Describe what you'd like it to see, and your AICOS account manager will take it from here."
             }
           </p>
           <label className="field-label">
