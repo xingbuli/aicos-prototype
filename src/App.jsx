@@ -1,26 +1,32 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
+  BarChart3,
   Bot,
+  CalendarDays,
   Check,
   CheckCircle2,
   Clock3,
   ChevronLeft,
   ChevronRight,
   Copy,
+  Diamond,
+  FileText,
   HelpCircle,
   Home,
   KeyRound,
   LogOut,
   Map,
+  Mail,
   Menu,
   MessageSquare,
-  Network,
   RotateCcw,
   Settings,
   ShieldCheck,
   Sparkles,
+  Target,
   TriangleAlert,
+  UsersRound,
   X,
 } from "lucide-react";
 import {
@@ -56,7 +62,7 @@ const STORAGE_KEYS = {
 const VIEWS = {
   home: "Home",
   roadmaps: "Roadmaps",
-  access: "Access & walls",
+  access: "Context access",
   chat: "Talk to AICOS",
 };
 
@@ -165,8 +171,8 @@ function SignIn({ onEnter }) {
         </p>
       </section>
 
-      <section className="workspace-picker" aria-label="Choose a workspace to enter">
-        <p className="eyebrow">Choose a workspace to enter.</p>
+      <section className="workspace-picker" aria-label="Choose an account to sign in">
+        <p className="eyebrow">Choose an account to sign in.</p>
         <div className="workspace-cards">
           {personas.map((persona) => (
             <button
@@ -181,12 +187,12 @@ function SignIn({ onEnter }) {
                 </small>
               </span>
               <span className="card-action">
-                Continue as {persona.name.split(" ")[0]} <ArrowRight size={16} />
+                Sign in as {persona.name.split(" ")[0]} <ArrowRight size={16} />
               </span>
             </button>
           ))}
         </div>
-        <p className="prototype-footnote">Interactive prototype · simulated workspace · no real data.</p>
+        <p className="prototype-footnote">Demo sign-in · simulated accounts · no real data.</p>
       </section>
     </main>
   );
@@ -385,7 +391,6 @@ function Sidebar({ persona, activeView, onNavigate, onHelp, onSettings, onSignOu
     { label: VIEWS.access, icon: ShieldCheck, view: VIEWS.access },
     { label: VIEWS.chat, icon: MessageSquare, view: VIEWS.chat },
     { label: "How it works", icon: HelpCircle, action: "help" },
-    { label: "Connected sources", icon: Network, action: "settings" },
   ];
 
   return (
@@ -420,18 +425,18 @@ function Sidebar({ persona, activeView, onNavigate, onHelp, onSettings, onSignOu
         </nav>
 
         <div className="sidebar-bottom">
-          <div className="source-card">
+          <button className="source-card source-card-button" onClick={onSettings}>
             <p>Connected sources</p>
             <div className="source-icons" aria-label="Connected sources">
               {persona.connectors.map((connector) => (
-                <span key={connector.source}>{connector.source.slice(0, 1)}</span>
+                <SourceIcon key={connector.source} source={connector.source} state={connector.state} />
               ))}
             </div>
-          </div>
+          </button>
 
           <div className="confidence-card">
             <div className="confidence-topline">
-              <span>Trust rules</span>
+              <span>Safety checks</span>
               <strong>Always on</strong>
             </div>
             <div className="confidence-row">
@@ -517,11 +522,11 @@ function HomePreviewGrid({ persona, objectives, chatMessages, onOpenView }) {
 
       <article className="preview-card">
         <div>
-          <span className="section-kicker">Access & walls</span>
+          <span className="section-kicker">Context access</span>
           <h2>{connectedCount} connected sources</h2>
           <p>
-            {offLimitsCount} area{offLimitsCount === 1 ? "" : "s"} stay walled off unless you ask a
-            human to grant more context.
+            {offLimitsCount} area{offLimitsCount === 1 ? "" : "s"} stay private unless you request
+            more context for AICOS.
           </p>
         </div>
         <button className="preview-action" onClick={() => onOpenView(VIEWS.access)}>
@@ -576,9 +581,9 @@ function AccessView({ persona, onRequestAccess }) {
   return (
     <section className="view-page">
       <ViewHeader
-        eyebrow="Access & walls"
-        title="Use granted context, respect the boundaries."
-        body="This view shows what AICOS can read, what is deliberately off-limits, and where it needs a human account manager to grant more context."
+        eyebrow="Context access"
+        title="Control what AICOS can use."
+        body="This view shows what AICOS can read, what stays private, and where you can request more context."
       />
       <div className="access-view-shell">
         <AccessPanel persona={persona} onRequestAccess={onRequestAccess} />
@@ -667,19 +672,19 @@ function BriefingSection({ persona, draftStates, onDraftState, onRequestAccess, 
             <ConfidenceTag confidence={priorityItem.confidence} />
           </div>
         </div>
-        <div className="trust-card" aria-label="AICOS confidence summary">
+        <div className="trust-card" aria-label="AICOS action guard summary">
           <div className="trust-card-top">
             <ShieldCheck size={18} />
-            <span>Trust layer</span>
-            <strong>Visible</strong>
+            <span>Action Guard</span>
+            <strong>On</strong>
           </div>
           <div className="trust-sources">
-            <span>Draft, don&apos;t send</span>
-            <span>Show confidence</span>
-            <span>Name the gaps</span>
-            <span>Respect the walls</span>
+            <span>Approval before sending</span>
+            <span>Confidence shown</span>
+            <span>Gaps flagged</span>
+            <span>Boundaries respected</span>
           </div>
-          <small><Clock3 size={13} /> Nothing sends without approval</small>
+          <small><Clock3 size={13} /> Nothing leaves without your approval</small>
         </div>
       </div>
 
@@ -869,8 +874,8 @@ function AccessPanel({ persona, onRequestAccess }) {
         <button className="text-action" onClick={() => onRequestAccess("Review context sources")}>Request access</button>
       </div>
       <p className="access-intro">
-        AICOS only uses granted sources. Off-limits areas stay walled off; if more context is needed,
-        it asks a human through you.
+        AICOS only uses granted sources. Private areas stay out of reach unless you ask the AICOS
+        team to connect more context.
       </p>
       <div className="access-list">
         {persona.access.map((item) => {
@@ -886,7 +891,7 @@ function AccessPanel({ persona, onRequestAccess }) {
               </div>
               {isOffLimits && (
                 <button className="tiny-link" onClick={() => onRequestAccess(item.source)}>
-                  Ask a human
+                  Request access
                 </button>
               )}
             </article>
@@ -960,6 +965,37 @@ function Avatar({ name }) {
   return <span className="avatar">{name.split(" ").map((part) => part[0]).join("").slice(0, 2)}</span>;
 }
 
+function SourceIcon({ source, state }) {
+  const normalized = source.toLowerCase();
+  const meta = normalized.includes("calendar")
+    ? { icon: CalendarDays, tone: "calendar" }
+    : normalized.includes("email")
+      ? { icon: Mail, tone: "email" }
+      : normalized.includes("slack")
+        ? { icon: MessageSquare, tone: "slack" }
+        : normalized.includes("teams")
+          ? { icon: UsersRound, tone: "teams" }
+          : normalized.includes("jira")
+            ? { icon: Diamond, tone: "jira" }
+            : normalized.includes("power")
+              ? { icon: BarChart3, tone: "powerbi" }
+              : normalized.includes("okr")
+                ? { icon: Target, tone: "okr" }
+                : normalized.includes("doc")
+                  ? { icon: FileText, tone: "docs" }
+                  : normalized.includes("loop")
+                    ? { icon: RotateCcw, tone: "loop" }
+                    : { icon: FileText, tone: "default" };
+  const Icon = meta.icon;
+
+  return (
+    <span className={`source-icon ${meta.tone} ${state === "connected" ? "connected" : ""}`} title={source}>
+      <Icon size={13} aria-hidden />
+      <span className="sr-only">{source}</span>
+    </span>
+  );
+}
+
 function HelpModal({ onClose, onReplayTour }) {
   return (
     <Modal title="How AICOS works" onClose={onClose} size="wide">
@@ -1025,9 +1061,12 @@ function SettingsModal({ persona, byoKey, onKeyChange, onClose }) {
                   }))
                 }
               >
-                <span>
+                <span className="connector-main">
+                  <SourceIcon source={connector.source} state={connectorState[connector.source]} />
+                  <span>
                   <strong>{connector.source}</strong>
                   <small>{isConnected ? "connected" : "available"}</small>
+                  </span>
                 </span>
                 <span className="toggle" aria-hidden>
                   <span />
@@ -1089,13 +1128,13 @@ function RequestAccessModal({ scope, onClose }) {
   }, [sent, onClose]);
 
   return (
-    <Modal title="Request access through your account manager" onClose={onClose}>
+    <Modal title="Request access for AICOS" onClose={onClose}>
       {sent ? (
         <div className="confirmation-state">
           <Check size={22} />
           <p>
             {
-              "Request sent to your AICOS account manager. You'll get a note here when access is granted. AICOS won't access anything until then."
+              "Request sent to the AICOS team. You can track updates here, and AICOS won't access anything until it is granted."
             }
           </p>
         </div>
@@ -1103,7 +1142,7 @@ function RequestAccessModal({ scope, onClose }) {
         <>
           <p className="modal-intro">
             {
-              "AICOS won't reach into anything you haven't granted. Describe what you'd like it to see, and your AICOS account manager will set it up."
+              "AICOS won't reach into anything you haven't granted. Describe what you'd like it to see, and the AICOS team will take it from here."
             }
           </p>
           <label className="field-label">

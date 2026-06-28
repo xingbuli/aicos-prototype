@@ -408,6 +408,17 @@ a {
   padding: 0.75rem;
 }
 
+.source-card-button {
+  width: 100%;
+  color: inherit;
+  text-align: left;
+}
+
+.source-card-button:hover {
+  border-color: rgba(57, 230, 199, 0.52);
+  background: rgba(6, 45, 72, 0.88);
+}
+
 .source-card p,
 .confidence-card p {
   margin: 0 0 0.55rem;
@@ -421,29 +432,57 @@ a {
   gap: 0.3rem;
 }
 
-.source-icons span,
-.source-icons small {
-  width: 18px;
-  height: 18px;
+.source-icon {
+  width: 20px;
+  height: 20px;
   display: inline-grid;
   place-items: center;
-  border-radius: 4px;
-  background: #0c4d68;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 5px;
+  background: #24455c;
   color: #fff;
-  font-size: 0.62rem;
-  font-weight: 800;
+  flex: none;
 }
 
-.source-icons span:nth-child(2n) {
-  background: #0b846f;
+.source-icon.calendar {
+  background: #1d4ed8;
 }
 
-.source-icons span:nth-child(3n) {
-  background: #285fd6;
+.source-icon.email {
+  background: #0f766e;
 }
 
-.source-icons small {
-  background: #20384c;
+.source-icon.loop {
+  background: #7c3aed;
+}
+
+.source-icon.slack {
+  background: #0f8a7b;
+}
+
+.source-icon.teams {
+  background: #4656c8;
+}
+
+.source-icon.jira {
+  background: #2563eb;
+}
+
+.source-icon.powerbi {
+  background: #c28500;
+}
+
+.source-icon.okr {
+  background: #b0452a;
+}
+
+.source-icon.docs {
+  background: #334155;
+}
+
+.source-icon:not(.connected) {
+  filter: saturate(0.75);
+  opacity: 0.82;
 }
 
 .confidence-topline,
@@ -1993,6 +2032,19 @@ a {
 .connector-row strong,
 .connector-row small {
   display: block;
+}
+
+.connector-main {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.connector-main .source-icon {
+  width: 28px;
+  height: 28px;
+  border-color: rgba(15, 23, 42, 0.08);
 }
 
 .connector-row small {
