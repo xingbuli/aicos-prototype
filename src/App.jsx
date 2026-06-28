@@ -1160,6 +1160,8 @@ function RoadmapBoard({
         </button>
       </form>
 
+      <RoadmapTimeline objectives={objectives} />
+
       <div className="objective-stack">
         {objectives.map((objective) => (
           <ObjectiveCard objective={objective} key={objective.id} />
@@ -1170,13 +1172,7 @@ function RoadmapBoard({
 }
 
 function ObjectiveCard({ objective }) {
-  const status = objective.tasks.some((task) => task.status === "blocked")
-    ? "blocked"
-    : objective.tasks.some((task) => task.status === "stale")
-      ? "stale"
-      : objective.tasks.some((task) => task.status === "not_started")
-        ? "not_started"
-        : "on_track";
+  const status = getObjectiveStatus(objective);
 
   return (
     <article className={`objective-card ${objective.generated ? "generated" : ""}`}>
@@ -1204,6 +1200,8 @@ function ObjectiveCard({ objective }) {
         </div>
       )}
 
+      <ObjectiveTimeline objective={objective} />
+
       <div className="task-list" role="list">
         {objective.tasks.map((task) => (
           <article className="task-row" role="listitem" key={`${objective.id}-${task.title}`}>
@@ -1222,6 +1220,133 @@ function ObjectiveCard({ objective }) {
         ))}
       </div>
     </article>
+  );
+}
+
+function RoadmapTimeline({ objectives }) {
+  const timeline = buildTimelineModel(objectives);
+  const totalTasks = objectives.reduce((sum, objective) => sum + objective.tasks.length, 0);
+
+  return (
+    <section className="roadmap-timeline" aria-labelledby="roadmap-timeline-title">
+      <div className="timeline-heading">
+        <div>
+          <span className="section-kicker">Timeline</span>
+          <h3 id="roadmap-timeline-title">Roadmap at a glance</h3>
+          <p>What is happening when, and what is blocking the plan.</p>
+        </div>
+        <div className="timeline-summary" aria-label="Roadmap summary">
+          <span>{objectives.length} objectives</span>
+          <span>{totalTasks} tasks</span>
+          <span>{timeline.blockedCount} blockers</span>
+        </div>
+      </div>
+
+      <TimelineNote />
+
+      {timeline.rows.length > 0 ? (
+        <div className="timeline-scroll" role="region" aria-label="Portfolio roadmap timeline" tabIndex={0}>
+          <TimelineAxis ticks={timeline.ticks} />
+          <div className="portfolio-timeline">
+            {timeline.objectives.map((objective) => (
+              <div className="timeline-objective-group" key={objective.id}>
+                <div className="timeline-objective-title">
+                  <strong>{objective.title}</strong>
+                  <StatusPill status={objective.status} />
+                </div>
+                {objective.rows.map((row) => (
+                  <TimelineTaskRow row={row} key={`${objective.id}-${row.task.title}`} />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="timeline-empty">Add or generate an objective to see the roadmap timeline.</p>
+      )}
+    </section>
+  );
+}
+
+function ObjectiveTimeline({ objective }) {
+  const timeline = buildTimelineModel([objective]);
+
+  return (
+    <section className="objective-timeline" aria-label={`${objective.title} timeline`}>
+      <div className="objective-timeline-head">
+        <span>Timeline</span>
+        <small>spans inferred</small>
+      </div>
+      {timeline.rows.length > 0 ? (
+        <div className="timeline-scroll compact" role="region" aria-label={`${objective.title} task timeline`} tabIndex={0}>
+          <TimelineAxis ticks={timeline.ticks} compact />
+          <div className="compact-timeline">
+            {timeline.rows.map((row) => (
+              <TimelineTaskRow row={row} key={`${objective.id}-${row.task.title}`} compact />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="timeline-empty compact">Task dates need confirmation before AICOS can draw a timeline.</p>
+      )}
+    </section>
+  );
+}
+
+function TimelineAxis({ ticks, compact = false }) {
+  return (
+    <div className={`timeline-axis ${compact ? "compact" : ""}`} aria-hidden>
+      <span className="timeline-axis-spacer" />
+      <div className="timeline-axis-track">
+        {ticks.map((tick) => (
+          <span style={{ left: `${tick.position}%` }} key={tick.label}>
+            {tick.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TimelineTaskRow({ row, compact = false }) {
+  const statusMeta = STATUS_META[row.task.status] ?? STATUS_META.not_started;
+  const confidenceMeta = CONFIDENCE_META[row.task.confidence] ?? CONFIDENCE_META.unknown;
+
+  return (
+    <article className={`timeline-task-row ${compact ? "compact" : ""} ${row.invalid ? "invalid" : ""}`}>
+      <div className="timeline-task-label">
+        <strong>{row.task.title}</strong>
+        <span>
+          {row.task.owner} · {row.task.due || "date needs confirmation"} · {statusMeta.label} · {confidenceMeta.label}
+        </span>
+      </div>
+      <div className="timeline-track">
+        {row.invalid ? (
+          <span className="timeline-date-missing">
+            <TriangleAlert size={13} /> date needs confirmation
+          </span>
+        ) : (
+          <span
+            className={`timeline-bar ${row.task.status}`}
+            style={{
+              "--bar-left": `${row.left}%`,
+              "--bar-width": `${row.width}%`,
+            }}
+          >
+            <span>{compact ? row.task.due : `${row.task.owner} · ${row.task.due}`}</span>
+          </span>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function TimelineNote() {
+  return (
+    <p className="timeline-note">
+      <TriangleAlert size={14} />
+      Timeline spans inferred from due dates. Confirm starts before relying on this.
+    </p>
   );
 }
 
@@ -1689,6 +1814,147 @@ function useLocalStorage(key, initialValue) {
   }, [key, value]);
 
   return [value, setValue];
+}
+
+const DEMO_YEAR = 2026;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const MONTH_INDEX = {
+  Jan: 0,
+  Feb: 1,
+  Mar: 2,
+  Apr: 3,
+  May: 4,
+  Jun: 5,
+  Jul: 6,
+  Aug: 7,
+  Sep: 8,
+  Oct: 9,
+  Nov: 10,
+  Dec: 11,
+};
+
+function buildTimelineModel(objectives) {
+  const objectiveModels = objectives.map((objective) => {
+    const rows = [];
+    let previousDueDate = null;
+
+    objective.tasks.forEach((task) => {
+      const dueDate = parseDemoDate(task.due);
+      if (!dueDate) {
+        rows.push({ task, objective, invalid: true });
+        return;
+      }
+
+      const startDate = previousDueDate ?? addDays(dueDate, -7);
+      rows.push({
+        task,
+        objective,
+        startDate,
+        dueDate,
+        invalid: false,
+      });
+      previousDueDate = dueDate;
+    });
+
+    return {
+      id: objective.id,
+      title: objective.title,
+      status: getObjectiveStatus(objective),
+      rows,
+    };
+  });
+
+  const validRows = objectiveModels.flatMap((objective) => objective.rows).filter((row) => !row.invalid);
+  const earliest = validRows.reduce(
+    (current, row) => (current && current < row.startDate ? current : row.startDate),
+    null,
+  );
+  const latest = validRows.reduce(
+    (current, row) => (current && current > row.dueDate ? current : row.dueDate),
+    null,
+  );
+  const domainStart = earliest ? addDays(earliest, -2) : null;
+  const domainEnd = latest ? addDays(latest, 2) : null;
+  const domainDays = domainStart && domainEnd ? Math.max(1, daysBetween(domainStart, domainEnd)) : 1;
+
+  objectiveModels.forEach((objective) => {
+    objective.rows = objective.rows.map((row) => {
+      if (row.invalid || !domainStart) return row;
+      const left = clampPercent((daysBetween(domainStart, row.startDate) / domainDays) * 100);
+      const width = Math.max(3, (Math.max(1, daysBetween(row.startDate, row.dueDate)) / domainDays) * 100);
+      return {
+        ...row,
+        left,
+        width: Math.min(width, 100 - left),
+      };
+    });
+  });
+
+  const rows = objectiveModels.flatMap((objective) => objective.rows);
+
+  return {
+    objectives: objectiveModels,
+    rows,
+    ticks: buildTimelineTicks(domainStart, domainEnd),
+    blockedCount: rows.filter((row) => ["blocked", "stale"].includes(row.task.status)).length,
+  };
+}
+
+function getObjectiveStatus(objective) {
+  if (objective.tasks.some((task) => task.status === "blocked")) return "blocked";
+  if (objective.tasks.some((task) => task.status === "stale")) return "stale";
+  if (objective.tasks.some((task) => task.status === "not_started")) return "not_started";
+  return "on_track";
+}
+
+function parseDemoDate(value) {
+  if (!value || typeof value !== "string") return null;
+  const match = value.trim().match(/^([A-Za-z]{3,9})\s+(\d{1,2})$/);
+  if (!match) return null;
+  const monthKey = `${match[1][0].toUpperCase()}${match[1].slice(1, 3).toLowerCase()}`;
+  const month = MONTH_INDEX[monthKey];
+  const day = Number(match[2]);
+  if (month === undefined || !Number.isInteger(day) || day < 1 || day > 31) return null;
+
+  const date = new Date(DEMO_YEAR, month, day);
+  if (date.getMonth() !== month || date.getDate() !== day) return null;
+  return date;
+}
+
+function addDays(date, days) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+
+function daysBetween(start, end) {
+  return Math.round((end.getTime() - start.getTime()) / DAY_MS);
+}
+
+function buildTimelineTicks(start, end) {
+  if (!start || !end) return [];
+  const totalDays = Math.max(1, daysBetween(start, end));
+  const tickCount = Math.min(5, totalDays + 1);
+  const seen = new Set();
+
+  return Array.from({ length: tickCount }, (_, index) => {
+    const offset = Math.round((totalDays / Math.max(1, tickCount - 1)) * index);
+    const date = addDays(start, offset);
+    return {
+      label: formatTimelineDate(date),
+      position: clampPercent((offset / totalDays) * 100),
+    };
+  }).filter((tick) => {
+    if (seen.has(tick.label)) return false;
+    seen.add(tick.label);
+    return true;
+  });
+}
+
+function formatTimelineDate(date) {
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function clampPercent(value) {
+  return Math.max(0, Math.min(100, value));
 }
 
 async function generateRoadmap(objective, persona, byoKey) {
