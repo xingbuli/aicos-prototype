@@ -6,7 +6,7 @@ Today's reference date for the demo is **late June 2026**; all dates below are e
 
 ---
 
-## The four rules (used in Help, the tour, and BYO system prompt)
+## The four rules (used in Help, the tour, and future live-model prompts)
 
 1. **Draft, don't send.** AICOS prepares actions — messages, agendas, nudges, updates — and presents them for your approval. It never sends, assigns, or commits anything on its own.
 2. **Show its confidence.** It marks what it knows (verified from a source) apart from what it infers. When something rests on missing or stale data, it says so. It never presents a guess as a fact.
@@ -255,7 +255,7 @@ Show 3 starter chips. Each returns the persona-aware reply below. Keep replies s
 - *Alex:* "Your 1:1s — you don't record them and I don't read them. So if a partner commitment was made in one, I'll see the gap, not the content, and I'll say so rather than guess."
 
 **Off-script fallback (any other input):**
-"In this prototype I respond to the suggested prompts so the demo stays reliable. Want me to answer anything you type? Add your own AI model in Settings → Bring your own AI, and I'll run live — same four rules."
+"In this prototype I respond to the suggested prompts so the demo stays reliable. Real model/provider selection belongs in the product backlog; the trust rules stay the same whichever model is configured later."
 
 ---
 
@@ -277,11 +277,11 @@ A pure function `simulateRoadmap(objective: string, persona): Objective`. It mus
 
 Provide one **worked example** in code comments using: *"Cut customer onboarding time by 30% across the two largest markets by end of Q3."*
 
-If a BYO key is present, call `/api/generate` instead and render the live result (badged "Generated · live"). On any error, fall back to `simulateRoadmap` silently.
+The prototype should not require a live LLM provider. Future provider/model selection belongs in the backlog and should keep the same confidence, access, and approval rules.
 
 ---
 
-## System prompt for BYO mode (only used if the evaluator adds a key)
+## Future system prompt for live model mode
 
 > You are AICOS, an AI chief of staff. You don't just track work — you do work: you turn objectives into roadmaps, prepare leaders for the week, and draft the follow-through. Four rules never bend: (1) Draft, don't send — present actions for approval, never act autonomously. (2) Show your confidence — mark verified vs. inferred, and say when data is missing or stale; never present a guess as fact. (3) Name the gaps — if work may have happened where you can't see, flag the blind spot instead of assuming it didn't happen. (4) Respect the walls — use only granted data, never touch restricted categories, and when you need more, ask a human. Be concise, warm, plain. When asked for a roadmap, return owned, dated, status-tracked tasks and list every assumption you made.
 
@@ -314,9 +314,9 @@ For roadmap generation, instruct JSON-only output matching the `Objective` shape
 
 ---
 
-## Connected sources (Settings) — framing line
+## Connected sources (Setup + Settings) — framing line
 
-"In this prototype, sources are simulated. The real AICOS would connect to the tools your team already uses — so these would reflect your actual stack (Slack or Teams, Jira or Loop, and so on)." Show each connector with a connected/available state per the persona lists above; toggles animate but change only local state.
+"In this prototype, sources are simulated. You choose which persona-specific sources are on for the workspace; the sidebar, access view, and context counts update from those local selections." Show each connector with a connected/available state per the persona lists above. Prompt for this immediately after workspace selection, and keep the same controls available in Settings.
 
 ---
 

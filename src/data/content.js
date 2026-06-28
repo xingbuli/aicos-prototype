@@ -61,7 +61,7 @@ export const CHAT_STARTERS = [
 ];
 
 export const CHAT_FALLBACK =
-  "In this prototype I respond to the suggested prompts so the demo stays reliable. Want me to answer anything you type? Add your own AI model in Settings → Bring your own AI, and I'll run live — same four rules.";
+  "In this prototype I respond to the suggested prompts so the demo stays reliable. Real model/provider selection belongs in the product backlog; the trust rules stay the same whichever model is configured later.";
 
 export const personas = [
   {
@@ -806,7 +806,7 @@ export const HELP_FAQ = [
 ];
 
 export const CONNECTED_SOURCES_COPY =
-  "In this prototype, sources are simulated. The real AICOS would connect to the tools your team already uses — so these would reflect your actual stack (Slack or Teams, Jira or Loop, and so on).";
+  "In this prototype, sources are simulated. You choose which persona-specific sources are on for the workspace; the sidebar, access view, and context counts update from those local selections.";
 
-export const BYO_SYSTEM_PROMPT =
+export const LIVE_MODEL_SYSTEM_PROMPT =
   "You are AICOS, an AI chief of staff. You don't just track work — you do work: you turn objectives into roadmaps, prepare leaders for the week, and draft the follow-through. Four rules never bend: (1) Draft, don't send — present actions for approval, never act autonomously. (2) Show your confidence — mark verified vs. inferred, and say when data is missing or stale; never present a guess as fact. (3) Name the gaps — if work may have happened where you can't see, flag the blind spot instead of assuming it didn't happen. (4) Respect the boundaries — use only granted data, never touch restricted categories, and when you need more, ask a human. Be concise, warm, plain. When asked for a roadmap, return owned, dated, status-tracked tasks and list every assumption you made.";

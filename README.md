@@ -4,34 +4,36 @@ AICOS is an AI chief of staff that does work, not just tracks it: it turns objec
 
 ## For Evaluators
 
-Open the deployed URL, choose one of the three workspaces, and take the guided tour. No setup, account, environment variable, or real data is required. The intended first run is:
+Open the deployed URL, choose one of the three workspaces, confirm the pre-selected source setup, and take the guided tour. No account, environment variable, or real data is required. The intended first run is:
 
-1. Sign in by choosing Claudia, Alfredo, or Alex.
-2. Follow the 5-step tour.
-3. Read the weekly briefing.
-4. Edit a draft, approve it, then mark it sent in the prototype.
-5. Open Prep Desk to review, stage, and complete simulated deck prep, meeting prep, 1:1 agenda prep, nudge requests, and scheduling work.
-6. Generate a roadmap from your own objective.
-7. Request access from a blind spot or off-limits source.
+1. Choose Claudia, Alfredo, or Alex.
+2. Confirm or adjust the simulated connected sources for that workspace.
+3. Follow the 5-step tour.
+4. Read the weekly briefing.
+5. Edit a draft, approve it, edit again if needed, then mark it sent in the prototype.
+6. Open Prep Desk to review, stage, and complete simulated deck prep, meeting prep, 1:1 agenda prep, nudge requests, and scheduling work.
+7. Open chat as an in-page side panel without leaving the current view.
+8. Generate a roadmap from your own objective.
+9. Request access from a blind spot or off-limits source.
 
 ## What Is Real, Simulated, And Assumed
 
 | Area | Status | Notes |
 |---|---|---|
-| Product workflow | Real prototype UI | Workspace selection, guided tour, briefing, Prep Desk action queue, editable draft approval, final prototype commit actions, roadmap generation, chat, settings, help, and request-access flows are interactive. |
+| Product workflow | Real prototype UI | Workspace selection, source setup, guided tour, briefing, Prep Desk action queue, editable draft approval, final prototype commit actions, roadmap generation, in-page chat, settings, help, and request-access flows are interactive. |
 | Data | Simulated | All workspace content is curated, pre-written demo content from `docs/CONTENT.md`. No real AES or user data is used. |
-| Integrations | Assumed placeholders | Slack, Teams, Jira, Microsoft Loop, Power BI, Calendar, Email, OKR tracker, and shared docs are represented as simulated connected sources because the real evaluator stack is unknown. |
+| Integrations | Assumed placeholders | Slack, Teams, Jira, Microsoft Loop, Power BI, Calendar, Email, OKR tracker, and shared docs are represented as simulated connected sources because the real evaluator stack is unknown. Source choices are local prototype state and update the visible connected-source panel. |
 | Prep Desk actions | Simulated prototype flow | Prep Desk lets users edit/review, stage, and then commit a simulated outcome: apply deck notes, save agendas, mark nudges sent, create calendar holds, or record adoption notes. Edits are local browser state; it does not parse PowerPoint files, edit documents, read private 1:1s, send messages, or create real calendar events. Final actions show receipts only. |
 | Team adoption | Product framing | Claudia's team-mode and role-impact concerns are acknowledged in Prep Desk. Real multi-user collaboration and onboarding workflows are future MVP work. |
 | Authentication | Simulated | Choosing a workspace is persona selection, not real auth. |
 | Sending messages | Simulated | AICOS drafts messages and the leader can mark them sent in the prototype. No real message is sent. |
 | Access requests | Simulated | Requests route to a simulated AICOS account manager and confirm locally. |
 | Default AI | Simulated | The app works offline with curated replies and a deterministic client-side roadmap generator. |
-| Optional live AI | Bring your own key | Evaluators may paste their own Anthropic key in Settings to try live objective/chat generation. This is optional and never required. |
+| LLM providers | Backlog | The prototype does not require a real LLM provider. Provider/model selection is a future product decision; the current demo keeps responses reliable with curated and deterministic simulation. |
 
-## Bring Your Own AI Model
+## Model Provider Note
 
-The deployed app is complete without live AI. To try live generation, open **Settings → Bring your own AI model** and paste an Anthropic API key. The key is stored in browser `localStorage` only and is sent to the optional `/api/generate` function for that request. If the request fails, the app silently falls back to the simulated generator so the demo never blocks.
+The deployed app is complete without live AI. The Settings panel states that model/provider selection belongs in the backlog; this keeps the prototype provider-neutral and avoids implying that one vendor is required.
 
 No environment variables are required for deployment.
 
@@ -39,7 +41,7 @@ No environment variables are required for deployment.
 
 - Codex was used to implement and refine the prototype in this repository.
 - Claude / Claude Code and Cursor may be listed here if used during the final submission workflow. Buli should adjust this section to match the actual tool history before tagging.
-- Optional runtime model: Anthropic Claude via a bring-your-own API key, off by default.
+- No real runtime model is required for the evaluator flow. Model/provider selection is future work.
 
 ## Two-Month MVP Roadmap
 

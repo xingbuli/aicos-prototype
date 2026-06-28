@@ -14,7 +14,6 @@ import {
   FileText,
   HelpCircle,
   Home,
-  KeyRound,
   LogOut,
   Map,
   Mail,
@@ -63,7 +62,7 @@ const ACTION_TYPE_META = {
 
 const STORAGE_KEYS = {
   persona: "aicos.persona",
-  byoKey: "aicos.anthropicKey",
+  sourcePrefs: "aicos.sourcePrefs",
   tourPrefix: "aicos.tourSeen.",
 };
 
@@ -85,12 +84,16 @@ const TOUR_VIEW_BY_TARGET = {
 
 function App() {
   const [personaId, setPersonaId] = useLocalStorage(STORAGE_KEYS.persona, "");
-  const [byoKey, setByoKey] = useLocalStorage(STORAGE_KEYS.byoKey, "");
+  const [sourcePrefs, setSourcePrefs] = useJsonLocalStorage(STORAGE_KEYS.sourcePrefs, {});
   const [modal, setModal] = useState(null);
+  const [setupPersonaId, setSetupPersonaId] = useState("");
   const [showTour, setShowTour] = useState(false);
   const [tourIndex, setTourIndex] = useState(0);
 
   const persona = personas.find((item) => item.id === personaId);
+  const setupPersona = personas.find((item) => item.id === setupPersonaId);
+  const sourceState = persona ? getPersonaSourceState(persona, sourcePrefs[persona.id]) : {};
+  const workspacePersona = persona ? applyConnectorState(persona, sourceState) : null;
 
   useEffect(() => {
     if (!persona) return;
@@ -101,14 +104,36 @@ function App() {
     }
   }, [persona]);
 
-  function enterWorkspace(nextPersonaId) {
+  function startWorkspaceSetup(nextPersonaId) {
+    setSetupPersonaId(nextPersonaId);
+  }
+
+  function enterWorkspace(nextPersonaId, connectorState) {
+    setSourcePrefs((current) => ({
+      ...current,
+      [nextPersonaId]: connectorState,
+    }));
+    setSetupPersonaId("");
     setPersonaId(nextPersonaId);
   }
 
   function signOut() {
     setPersonaId("");
+    setSetupPersonaId("");
     setModal(null);
     setShowTour(false);
+  }
+
+  function updateConnectorState(source, state) {
+    if (!persona) return;
+    setSourcePrefs((current) => ({
+      ...current,
+      [persona.id]: {
+        ...getDefaultConnectorState(persona),
+        ...(current[persona.id] ?? {}),
+        [source]: state,
+      },
+    }));
   }
 
   function replayTour() {
@@ -122,15 +147,25 @@ function App() {
     setShowTour(false);
   }
 
-  if (!persona) {
-    return <SignIn onEnter={enterWorkspace} />;
+  if (!persona && setupPersona) {
+    return (
+      <SourceSetup
+        persona={setupPersona}
+        initialState={getPersonaSourceState(setupPersona, sourcePrefs[setupPersona.id])}
+        onBack={() => setSetupPersonaId("")}
+        onContinue={(connectorState) => enterWorkspace(setupPersona.id, connectorState)}
+      />
+    );
+  }
+
+  if (!persona || !workspacePersona) {
+    return <SignIn onEnter={startWorkspaceSetup} />;
   }
 
   return (
     <>
       <Console
-        persona={persona}
-        byoKey={byoKey}
+        persona={workspacePersona}
         tourStep={showTour ? TOUR_STEPS[tourIndex] : null}
         onHelp={() => setModal({ type: "help" })}
         onSettings={() => setModal({ type: "settings" })}
@@ -143,9 +178,8 @@ function App() {
       )}
       {modal?.type === "settings" && (
         <SettingsModal
-          persona={persona}
-          byoKey={byoKey}
-          onKeyChange={setByoKey}
+          persona={workspacePersona}
+          onConnectorChange={updateConnectorState}
           onClose={() => setModal(null)}
         />
       )}
@@ -196,7 +230,7 @@ function SignIn({ onEnter }) {
                 </small>
               </span>
               <span className="card-action">
-                Sign in as {persona.name.split(" ")[0]} <ArrowRight size={16} />
+                Set up {persona.name.split(" ")[0]} <ArrowRight size={16} />
               </span>
             </button>
           ))}
@@ -207,7 +241,77 @@ function SignIn({ onEnter }) {
   );
 }
 
-function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onRequestAccess }) {
+function SourceSetup({ persona, initialState, onBack, onContinue }) {
+  const [connectorState, setConnectorState] = useState(initialState);
+  const connectedCount = Object.values(connectorState).filter((state) => state === "connected").length;
+
+  function toggleConnector(source) {
+    setConnectorState((current) => ({
+      ...current,
+      [source]: current[source] === "connected" ? "available" : "connected",
+    }));
+  }
+
+  return (
+    <main className="setup-screen">
+      <section className="setup-copy">
+        <p className="wordmark">AICOS</p>
+        <h1>Choose what AICOS can see for {persona.name.split(" ")[0]}.</h1>
+        <p>
+          These are simulated sources for the demo. We pre-selected the tools this leader likely
+          uses, and you can change them now or later in Settings.
+        </p>
+      </section>
+
+      <section className="setup-panel" aria-label={`Set up sources for ${persona.name}`}>
+        <div className="setup-panel-head">
+          <div>
+            <p className="eyebrow">Workspace setup</p>
+            <h2>{persona.name}</h2>
+            <span>{connectedCount} of {persona.connectors.length} sources on</span>
+          </div>
+          <button className="btn btn-ghost" onClick={onBack}>
+            Back
+          </button>
+        </div>
+
+        <div className="connector-list setup-connectors">
+          {persona.connectors.map((connector) => {
+            const state = connectorState[connector.source] ?? connector.state;
+            const isConnected = state === "connected";
+            return (
+              <button
+                className={`connector-row ${isConnected ? "connected" : ""}`}
+                key={connector.source}
+                onClick={() => toggleConnector(connector.source)}
+              >
+                <span className="connector-main">
+                  <SourceIcon source={connector.source} state={state} />
+                  <span>
+                    <strong>{connector.source}</strong>
+                    <small>{isConnected ? "on for this workspace" : "off for this workspace"}</small>
+                  </span>
+                </span>
+                <span className="toggle" aria-hidden>
+                  <span />
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="setup-actions">
+          <p>Source choices update the sidebar, access view, and demo context counts.</p>
+          <button className="btn btn-primary" onClick={() => onContinue(connectorState)}>
+            Continue to workspace <ArrowRight size={15} />
+          </button>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function Console({ persona, tourStep, onHelp, onSettings, onSignOut, onRequestAccess }) {
   const [objectives, setObjectives] = useState(persona.objectives);
   const [objectiveText, setObjectiveText] = useState(persona.objectivePrompt);
   const [objectiveError, setObjectiveError] = useState("");
@@ -228,6 +332,7 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
   const [isThinking, setIsThinking] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [activeView, setActiveView] = useState(VIEWS.home);
+  const [chatOpen, setChatOpen] = useState(false);
   const [toast, setToast] = useState("");
 
   useEffect(() => {
@@ -241,6 +346,7 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
     setEditModalItem(null);
     setChatInput("");
     setActiveView(VIEWS.home);
+    setChatOpen(false);
     setChatMessages([
       {
         id: "hello",
@@ -276,11 +382,20 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
       onSettings();
       return;
     }
+    if (item.view === VIEWS.chat) {
+      setChatOpen(true);
+      setMobileNavOpen(false);
+      return;
+    }
     setActiveView(item.view);
     setMobileNavOpen(false);
   }
 
   function openView(view) {
+    if (view === VIEWS.chat) {
+      setChatOpen(true);
+      return;
+    }
     setActiveView(view);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -305,7 +420,7 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
     }
     setObjectiveError("");
     setIsGenerating(true);
-    const generated = await generateRoadmap(clean, persona, byoKey);
+    const generated = generateRoadmap(clean, persona);
     setObjectives((current) => [generated, ...current]);
     setIsGenerating(false);
   }
@@ -363,7 +478,7 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
     setChatInput("");
     setIsThinking(true);
 
-    const reply = await getChatReply(text, persona, byoKey);
+    const reply = getChatReply(text, persona);
     setChatMessages((current) => [
       ...current,
       { id: `aicos-${Date.now()}`, role: "aicos", text: reply },
@@ -415,7 +530,6 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
                 value={objectiveText}
                 error={objectiveError}
                 isGenerating={isGenerating}
-                hasByoKey={Boolean(byoKey.trim())}
                 onChange={setObjectiveText}
                 onSubmit={submitObjective}
               />
@@ -438,15 +552,6 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
               <AccessView persona={persona} onRequestAccess={onRequestAccess} />
             )}
 
-            {activeView === VIEWS.chat && (
-              <ChatView
-                messages={chatMessages}
-                input={chatInput}
-                isThinking={isThinking}
-                onInput={setChatInput}
-                onSend={sendChat}
-              />
-            )}
           </main>
           {toast && (
             <div className="toast" role="status" aria-live="polite">
@@ -464,6 +569,16 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
           onClose={() => setEditModalItem(null)}
         />
         )}
+      {chatOpen && (
+        <ChatDrawer
+          messages={chatMessages}
+          input={chatInput}
+          isThinking={isThinking}
+          onInput={setChatInput}
+          onSend={sendChat}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
     </>
   );
 }
@@ -511,11 +626,16 @@ function Sidebar({ persona, activeView, onNavigate, onHelp, onSettings, onSignOu
 
         <div className="sidebar-bottom">
           <button className="source-card source-card-button" onClick={onSettings}>
-            <p>Connected sources</p>
+            <p>Connected sources · {persona.connectors.filter((connector) => connector.state === "connected").length}</p>
             <div className="source-icons" aria-label="Connected sources">
-              {persona.connectors.map((connector) => (
-                <SourceIcon key={connector.source} source={connector.source} state={connector.state} />
-              ))}
+              {persona.connectors
+                .filter((connector) => connector.state === "connected")
+                .map((connector) => (
+                  <SourceIcon key={connector.source} source={connector.source} state={connector.state} />
+                ))}
+              {!persona.connectors.some((connector) => connector.state === "connected") && (
+                <span className="source-empty">None selected</span>
+              )}
             </div>
           </button>
 
@@ -589,7 +709,7 @@ function HomePreviewGrid({ persona, objectives, chatMessages, onOpenView }) {
   const blockedCount = allTasks.filter((task) => task.status === "blocked").length;
   const staleCount = allTasks.filter((task) => task.status === "stale").length;
   const offLimitsCount = persona.access.filter((item) => item.state === "off").length;
-  const connectedCount = persona.access.filter((item) => item.state === "connected").length;
+  const connectedCount = persona.connectors.filter((item) => item.state === "connected").length;
   const lastMessage = [...chatMessages].reverse().find((message) => message.role === "aicos");
 
   return (
@@ -644,7 +764,6 @@ function RoadmapsView({
   value,
   error,
   isGenerating,
-  hasByoKey,
   onChange,
   onSubmit,
 }) {
@@ -660,7 +779,6 @@ function RoadmapsView({
         value={value}
         error={error}
         isGenerating={isGenerating}
-        hasByoKey={hasByoKey}
         onChange={onChange}
         onSubmit={onSubmit}
       />
@@ -678,6 +796,12 @@ function PrepDeskView({
   onEditPrep,
   onRequestAccess,
 }) {
+  const sortedItems = [...persona.prepDesk.items].sort((a, b) => {
+    const aDone = prepStates[a.id] === "completed";
+    const bDone = prepStates[b.id] === "completed";
+    return Number(aDone) - Number(bDone);
+  });
+
   return (
     <section className="view-page">
       <ViewHeader
@@ -696,13 +820,14 @@ function PrepDeskView({
         </div>
 
         <div className="prep-grid">
-          {persona.prepDesk.items.map((item) => (
+          {sortedItems.map((item) => (
             <PrepDeskCard
               item={item}
               key={item.id}
               state={prepStates[item.id] ?? "open"}
               edit={getPrepEdit(item, prepEdits[item.id])}
               onResolve={() => onPrepState(item.id, "staged")}
+              onReopen={() => onPrepState(item.id, "open")}
               onCommit={() => onPrepState(item.id, "completed")}
               onEdit={(patch) => onPrepEdit(item.id, patch)}
               onReset={() => onPrepReset(item.id)}
@@ -721,6 +846,7 @@ function PrepDeskCard({
   state,
   edit,
   onResolve,
+  onReopen,
   onCommit,
   onEdit,
   onReset,
@@ -812,6 +938,17 @@ function PrepDeskCard({
         {isStaged && (
           <button className="btn btn-primary" onClick={onCommit}>
             <Check size={15} /> {commitMeta.commitLabel}
+          </button>
+        )}
+        {isStaged && (
+          <button
+            className="btn btn-ghost"
+            onClick={() => {
+              onReopen();
+              if (usesModalEditor) onOpenEditor();
+            }}
+          >
+            Edit again
           </button>
         )}
         {isOpen && usesModalEditor && (
@@ -988,15 +1125,25 @@ function AccessView({ persona, onRequestAccess }) {
   );
 }
 
-function ChatView({ messages, input, isThinking, onInput, onSend }) {
+function ChatDrawer({ messages, input, isThinking, onInput, onSend, onClose }) {
   return (
-    <section className="view-page">
-      <ViewHeader
-        eyebrow="Talk to AICOS"
-        title="Ask questions without losing the trust layer."
-        body="Starter prompts stay reliable for the demo, and free-form questions are handled honestly when the answer would need live model context."
-      />
-      <div className="chat-view-shell">
+    <div className="chat-drawer-backdrop" role="presentation" onMouseDown={onClose}>
+      <aside
+        className="chat-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Talk to AICOS"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="chat-drawer-head">
+          <div>
+            <p className="eyebrow">Talk to AICOS</p>
+            <h2>Ask with page context</h2>
+          </div>
+          <button className="icon-button" onClick={onClose} aria-label="Close chat">
+            <X size={17} />
+          </button>
+        </div>
         <ChatPanel
           messages={messages}
           input={input}
@@ -1004,8 +1151,8 @@ function ChatView({ messages, input, isThinking, onInput, onSend }) {
           onInput={onInput}
           onSend={onSend}
         />
-      </div>
-    </section>
+      </aside>
+    </div>
   );
 }
 
@@ -1053,6 +1200,11 @@ function BriefingSection({
   onCopyBrief,
 }) {
   const priorityItem = persona.briefing.items.find((item) => item.kind === "blocker") ?? persona.briefing.items[0];
+  const briefingItems = [...persona.briefing.items].sort((a, b) => {
+    const aDone = draftStates[a.id] === "completed";
+    const bDone = draftStates[b.id] === "completed";
+    return Number(aDone) - Number(bDone);
+  });
 
   return (
     <section className="briefing-card rise" data-tour="briefing" id="briefing">
@@ -1099,9 +1251,11 @@ function BriefingSection({
       </div>
 
       <div className="briefing-items" id="briefing-items">
-        {persona.briefing.items.map((item, index) => (
+        {briefingItems.map((item, index) => {
+          const state = draftStates[item.id] ?? "open";
+          return (
           <article
-            className="briefing-item"
+            className={`briefing-item ${state === "completed" ? "completed" : ""}`}
             key={item.id}
             data-tour={
               item.confidence === "unknown" ? "blindspot" : index === 0 ? "confidence" : undefined
@@ -1118,7 +1272,7 @@ function BriefingSection({
             {(item.draft || item.secondaryAction) && (
               <DraftCard
                 item={item}
-                state={draftStates[item.id] ?? "open"}
+                state={state}
                 edit={getDraftEdit(item, draftEdits[item.id])}
                 onEdit={(patch) => onDraftEdit(item.id, patch)}
                 onReset={() => onDraftReset(item.id)}
@@ -1128,18 +1282,30 @@ function BriefingSection({
                     ["staged", "approved"].includes(draftStates[item.id]) ? "completed" : "staged",
                   )
                 }
+                onEditAgain={() => onDraftState(item.id, "open")}
                 onDismiss={() => onDraftState(item.id, "dismissed")}
                 onRequestAccess={onRequestAccess}
               />
             )}
           </article>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
 }
 
-function DraftCard({ item, state, edit, onEdit, onReset, onApprove, onDismiss, onRequestAccess }) {
+function DraftCard({
+  item,
+  state,
+  edit,
+  onEdit,
+  onReset,
+  onApprove,
+  onEditAgain,
+  onDismiss,
+  onRequestAccess,
+}) {
   if (state === "dismissed") {
     return (
       <div className="draft-card resolved">
@@ -1158,6 +1324,9 @@ function DraftCard({ item, state, edit, onEdit, onReset, onApprove, onDismiss, o
         </div>
         <button className="btn btn-primary" onClick={onApprove}>
           <Check size={15} /> Mark sent
+        </button>
+        <button className="btn btn-ghost" onClick={onEditAgain}>
+          Edit again
         </button>
       </div>
     );
@@ -1217,7 +1386,6 @@ function RoadmapBoard({
   value,
   error,
   isGenerating,
-  hasByoKey,
   onChange,
   onSubmit,
 }) {
@@ -1243,7 +1411,7 @@ function RoadmapBoard({
           onChange={(event) => onChange(event.target.value)}
           placeholder="Describe a goal for AICOS to turn into a roadmap"
         />
-        <small>{error || (hasByoKey ? "Generated · live when available" : "Generated · simulated preview")}</small>
+        <small>{error || "Generated · simulated preview"}</small>
         <button className="btn btn-primary" disabled={isGenerating}>
           <Sparkles size={15} />
           {isGenerating ? "Generating..." : "Generate roadmap"}
@@ -1454,18 +1622,22 @@ function AccessPanel({ persona, onRequestAccess }) {
       <div className="access-list">
         {persona.access.map((item) => {
           const isOffLimits = item.state === "off";
+          const isConnected = item.state === "connected";
           return (
-            <article className={`access-row ${isOffLimits ? "off" : "connected"}`} key={item.source}>
+            <article
+              className={`access-row ${isOffLimits ? "off" : isConnected ? "connected" : "available"}`}
+              key={item.source}
+            >
               <span className="access-state" aria-hidden>
-                {isOffLimits ? <TriangleAlert size={15} /> : <CheckCircle2 size={15} />}
+                {isConnected ? <CheckCircle2 size={15} /> : <TriangleAlert size={15} />}
               </span>
               <div>
                 <strong>{item.source}</strong>
                 <small>{item.level}{item.note ? ` · ${item.note}` : ""}</small>
               </div>
-              {isOffLimits && (
+              {!isConnected && (
                 <button className="tiny-link" onClick={() => onRequestAccess(item.source)}>
-                  Request access
+                  {isOffLimits ? "Request access" : "Connect"}
                 </button>
               )}
             </article>
@@ -1602,18 +1774,7 @@ function HelpModal({ onClose, onReplayTour }) {
   );
 }
 
-function SettingsModal({ persona, byoKey, onKeyChange, onClose }) {
-  const [saved, setSaved] = useState(false);
-  const [connectorState, setConnectorState] = useState(() =>
-    Object.fromEntries(persona.connectors.map((connector) => [connector.source, connector.state])),
-  );
-
-  useEffect(() => {
-    setConnectorState(
-      Object.fromEntries(persona.connectors.map((connector) => [connector.source, connector.state])),
-    );
-  }, [persona]);
-
+function SettingsModal({ persona, onConnectorChange, onClose }) {
   return (
     <Modal title="Settings" onClose={onClose} size="wide">
       <section className="settings-section">
@@ -1623,20 +1784,17 @@ function SettingsModal({ persona, byoKey, onKeyChange, onClose }) {
         </div>
         <div className="connector-list">
           {persona.connectors.map((connector) => {
-            const isConnected = connectorState[connector.source] === "connected";
+            const isConnected = connector.state === "connected";
             return (
               <button
                 className={`connector-row ${isConnected ? "connected" : ""}`}
                 key={connector.source}
                 onClick={() =>
-                  setConnectorState((current) => ({
-                    ...current,
-                    [connector.source]: isConnected ? "available" : "connected",
-                  }))
+                  onConnectorChange(connector.source, isConnected ? "available" : "connected")
                 }
               >
                 <span className="connector-main">
-                  <SourceIcon source={connector.source} state={connectorState[connector.source]} />
+                  <SourceIcon source={connector.source} state={connector.state} />
                   <span>
                   <strong>{connector.source}</strong>
                   <small>{isConnected ? "connected" : "available"}</small>
@@ -1653,38 +1811,17 @@ function SettingsModal({ persona, byoKey, onKeyChange, onClose }) {
 
       <section className="settings-section">
         <div>
-          <p className="eyebrow">Bring your own AI model</p>
+          <p className="eyebrow">Model provider note</p>
           <p>
-            Optional. Leave this blank and the prototype remains fully satisfying with simulated
-            briefings, chat, and roadmap generation. If you paste an Anthropic API key, AICOS will
-            try live generation for the objective box and chat, then fall back silently if anything
-            fails. The key is stored client-side only.
+            This prototype is designed to run without configuring a real LLM provider. Model and
+            provider selection belong in the product backlog; the current demo keeps briefings,
+            chat, and roadmaps simulated unless a local developer wires a compatible test endpoint.
           </p>
         </div>
-        <label className="key-field">
-          <KeyRound size={18} />
-          <input
-            type="password"
-            value={byoKey}
-            placeholder="Anthropic API key (optional)"
-            onChange={(event) => {
-              setSaved(false);
-              onKeyChange(event.target.value);
-            }}
-          />
-        </label>
-        <div className="modal-actions">
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              setSaved(true);
-              window.setTimeout(() => setSaved(false), 1800);
-            }}
-          >
-            Save settings
-          </button>
-          {saved && <span className="saved-note">Saved locally. No setup required.</span>}
-        </div>
+        <p className="provider-note">
+          Backlog item: let admins choose approved models/providers and apply the same confidence,
+          access, and approval gates to live output.
+        </p>
       </section>
     </Modal>
   );
@@ -1906,6 +2043,82 @@ function useLocalStorage(key, initialValue) {
   return [value, setValue];
 }
 
+function useJsonLocalStorage(key, initialValue) {
+  const [value, setValue] = useState(() => {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : initialValue;
+    } catch {
+      return initialValue;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // Source setup is still usable for the current session if persistence is unavailable.
+    }
+  }, [key, value]);
+
+  return [value, setValue];
+}
+
+function getDefaultConnectorState(persona) {
+  return Object.fromEntries(persona.connectors.map((connector) => [connector.source, connector.state]));
+}
+
+function getPersonaSourceState(persona, savedState) {
+  return {
+    ...getDefaultConnectorState(persona),
+    ...(savedState ?? {}),
+  };
+}
+
+function applyConnectorState(persona, connectorState) {
+  const connectors = persona.connectors.map((connector) => ({
+    ...connector,
+    state: connectorState[connector.source] ?? connector.state,
+  }));
+
+  const access = persona.access.map((item) => {
+    if (item.state === "off") return item;
+
+    const connector = connectors.find((candidate) => sourceNamesMatch(candidate.source, item.source));
+    if (!connector) return item;
+
+    if (connector.state === "connected") {
+      return {
+        ...item,
+        state: "connected",
+        level: item.level === "not connected" ? "read" : item.level,
+      };
+    }
+
+    return {
+      ...item,
+      state: "available",
+      level: "not connected",
+    };
+  });
+
+  return {
+    ...persona,
+    connectors,
+    access,
+  };
+}
+
+function sourceNamesMatch(connectorSource, accessSource) {
+  const connector = normalizeSourceName(connectorSource);
+  const access = normalizeSourceName(accessSource);
+  return access.includes(connector) || connector.includes(access);
+}
+
+function normalizeSourceName(value) {
+  return value.toLowerCase().replace(/microsoft/g, "").replace(/[^a-z0-9]/g, "");
+}
+
 const DEMO_YEAR = 2026;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MONTH_INDEX = {
@@ -2047,50 +2260,11 @@ function clampPercent(value) {
   return Math.max(0, Math.min(100, value));
 }
 
-async function generateRoadmap(objective, persona, byoKey) {
-  if (byoKey.trim()) {
-    try {
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "roadmap", objective, persona, apiKey: byoKey.trim() }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.objective?.tasks?.length) {
-          return {
-            ...data.objective,
-            id: `live-${Date.now()}`,
-            generated: true,
-            live: true,
-          };
-        }
-      }
-    } catch {
-      // Live mode is optional. Fall back to simulation without interrupting the evaluator.
-    }
-  }
-
+function generateRoadmap(objective, persona) {
   return simulateRoadmap(objective, persona);
 }
 
-async function getChatReply(text, persona, byoKey) {
-  if (byoKey.trim()) {
-    try {
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "chat", message: text, persona, apiKey: byoKey.trim() }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.reply) return data.reply;
-      }
-    } catch {
-      // Keep the demo reliable in optional live mode.
-    }
-  }
-
+function getChatReply(text, persona) {
   return persona.chatReplies[text] ?? CHAT_FALLBACK;
 }
 

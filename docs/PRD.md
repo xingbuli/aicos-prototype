@@ -31,8 +31,8 @@ The product is *useful* because it does work (roadmaps, briefings, drafts). It's
 
 ## 3. The experience (screen by screen)
 
-### 3.1 Sign in / choose workspace
-Frictionless, no real auth. A clean entry screen that frames AICOS in one line and presents the three leaders as **workspaces to enter** ("Continue as Claudia Nep — Sr. Director, 22-person team"). One click enters. This doubles as persona selection and lets the evaluator try all three. Copy in `docs/CONTENT.md` → "Sign-in".
+### 3.1 Sign in / choose workspace and sources
+Frictionless, no real auth. A clean entry screen that frames AICOS in one line and presents the three leaders as **workspaces to enter**. Choosing a workspace opens a short source setup step with persona-specific defaults already selected. The user can turn simulated sources on/off before entering, and the sidebar, access view, and source counts reflect those choices. Copy in `docs/CONTENT.md` → "Sign-in".
 
 ### 3.2 First-run guided walkthrough
 On first entry to a workspace, a **skippable 5-step spotlight tour** that stages the differentiator in order. It's the "saves the evaluator from reading the doc" mechanism. Steps and copy in `docs/CONTENT.md` → "Guided walkthrough". Relaunchable from Help. Track "seen" in `localStorage`; never force it twice.
@@ -41,39 +41,39 @@ On first entry to a workspace, a **skippable 5-step spotlight tour** that stages
 The main screen. Three things in a deliberate hierarchy:
 
 - **This week's briefing** (top, hero) — AICOS's prepared read: blockers, priority shifts, things to prepare for. Each item carries a confidence tag; actionable items include an **editable, approvable draft** with a two-step action flow: edit/review → stage as ready to send → leader marks it sent. The final receipt is simulated and explicit that no real message was sent. At least one item per persona is a staged **blind-spot** moment.
-- **Hand AICOS a goal** — the free-text objective box → simulated roadmap generator (always works) → roadmap appears in the board, marked "Generated · simulated preview". Optional live generation if BYO key set.
+- **Hand AICOS a goal** — the free-text objective box → simulated roadmap generator (always works) → roadmap appears in the board, marked "Generated · simulated preview".
 - **Objectives & roadmaps board** — curated objectives broken into owned, dated, status-tracked tasks, each with a confidence tag; AICOS's "open questions / confirm before relying on this" surfaced under each objective.
 - **Prep Desk** — a simulated but visible action queue for deck review, meeting prep, nudge requests, 1:1 agenda prep, and follow-up scheduling. It honors Alfredo's slide-deck review ask and Claudia's scheduling/follow-up ask without pretending the prototype can edit PowerPoint files, send messages, read private 1:1s, or create calendar events. Every item is typed, editable where useful, marked with confidence, and clear about blind spots. Actions use the same approval-gated lifecycle: edit/review → stage → user commits the final prototype outcome, such as **Mark sent**, **Create calendar hold**, **Save agenda**, **Apply review notes**, or **Record note**.
 
-Right rail: **What AICOS can see** (access panel, with off-limits items visible) and **Talk to AICOS** (chat).
+Right rail / preview cards: **What AICOS can see** (access panel, with off-limits items visible) and **Talk to AICOS** (opens an in-page side panel).
 
 ### 3.4 Chat ("Talk to AICOS")
-Simulated. Suggested starter prompts produce curated, persona-aware replies that demonstrate the four rules in conversation. Off-script free text returns an honest fallback that points to BYO-AI in Settings. Copy in `docs/CONTENT.md` → "Chat".
+Simulated side panel, not a separate page. Suggested starter prompts produce curated, persona-aware replies that demonstrate the four rules in conversation. Off-script free text returns an honest fallback that says provider/model selection is backlog work. Copy in `docs/CONTENT.md` → "Chat".
 
 ### 3.5 Request access / escalation (the trust spine, extended)
 Triggered from any blind-spot or off-limits item ("Request access" / "Ask a human"). Opens a modal that lets the leader request a scope (e.g., "Region C status in Power BI") with a note, routed to a **simulated human account manager**. Confirms ("Request sent to your AICOS account manager — you'll get a note when it's granted") and closes. No backend. This is realism *and* differentiator: AICOS handles boundaries by escalating through a person, never by bypassing them.
 
 ### 3.6 Product shells (thin, simulated, but complete)
 - **Help / "How AICOS works"** — the four rules in plain language, a short FAQ, and a "Replay the tour" button. Copy in `docs/CONTENT.md` → "Help".
-- **Connected sources (Settings)** — shows Slack, Teams, Jira, Microsoft Loop, Power BI, Calendar, Email as connectors with realistic connected/available states per persona, plus a one-line stated assumption that the real product would integrate the user's actual stack. Toggles are simulated.
-- **Bring your own AI model (Settings)** — optional key field; when set, the objective generator and chat run live; when empty, everything stays simulated. Clear copy that this is optional. Key stored client-side only.
+- **Connected sources (Setup + Settings)** — shows Slack, Teams, Jira, Microsoft Loop, Power BI, Calendar, Email as connectors with realistic connected/available states per persona, plus a one-line stated assumption that the real product would integrate the user's actual stack. Toggles are simulated local state but update the visible source panel and access counts.
+- **Model provider note (Settings)** — states that the prototype does not require a real LLM provider and that provider/model selection belongs in the backlog.
 - **Adoption note in Prep Desk** — Claudia's team-mode and role-impact objections are explicitly acknowledged: AICOS is framed as a team coordination layer with human setup/training, not a silent replacement for coordinators or project leads.
 - **Sign out / switch workspace** — returns to 3.1.
 
-## 4. Simulation & BYO-AI model
+## 4. Simulation & model-provider stance
 
-- **Default (no key):** every surface is curated or deterministically generated client-side. Zero setup; nothing can fail in front of the evaluator.
+- **Default:** every surface is curated or deterministically generated client-side. Zero provider setup; nothing can fail in front of the evaluator.
 - **Simulated roadmap generator:** a pure function that decomposes any objective string into a sensible phased roadmap with inferred owners/dates, confidence tags, and an open-questions list — clearly badged "simulated preview". Spec + example in `docs/CONTENT.md`.
-- **BYO-AI (optional):** if a key is present, route the objective box and chat through `app/api/generate/route.ts` (Anthropic). Same trust framing applies to live output (system prompt enforces the four rules — provided in `docs/CONTENT.md` → "System prompt for BYO mode"). Never required.
+- **Provider selection backlog:** real model/provider configuration is deliberately deferred so the prototype does not imply a single required vendor. The future product should support model selection behind the same trust layer.
 
 ## 5. README requirements (graded deliverable)
 
 The final `README.md` must include:
 1. **What AICOS is** + the thesis (does work + trust spine), in a few sentences.
-2. **For the evaluator:** open the URL, pick a workspace, take the tour — no setup needed.
+2. **For the evaluator:** open the URL, pick a workspace, confirm source setup, take the tour — no external setup needed.
 3. **What's real vs. simulated vs. assumed** — an explicit, honest table. State that this is a curated, simulation-only prototype; that integrations (Slack/Teams/Jira/Loop/Power BI/Calendar/Email) are assumed and represented as placeholders because the real stack is unknown; and that no real data is used.
-4. **Bring your own AI model** — how to optionally add an Anthropic key to make the objective generator and chat live; clearly marked optional.
-5. **AI tools used, and how** — built with Claude / Claude Code and Cursor; optional runtime model is Anthropic Claude via BYO key. (Buli to adjust to what he actually used.)
+4. **Model provider note** — state that the prototype is provider-neutral and that model selection is backlog work.
+5. **AI tools used, and how** — built with Codex and any other tools Buli used; no real runtime model is required for the evaluator flow.
 6. **If I had two months** — the MVP roadmap (use the version in `docs/CONTENT.md` → "Two-month roadmap"; it's derived from the interviews).
 7. **Submission** — the git tag commands (below).
 

@@ -19,11 +19,11 @@ Build in this order. After each milestone: `npm run build` (must pass), fix all 
 
 ## M3 — Objective composer + simulated generator
 - Free-text box → `simulateRoadmap()` (spec in `docs/CONTENT.md`) → new objective card prepended, badged "Generated · simulated preview", `rise` animation. Validates empty input; ⌘/Ctrl-Enter submits.
-- Wire optional BYO path behind a check for a stored key (falls back to simulation on any error).
+- Keep model/provider selection out of v1 runtime. The demo should remain simulated and provider-neutral; add model selection to the backlog.
 - **Done when:** any typed objective yields a sensible, well-formatted roadmap offline, instantly, every time.
 
 ## M4 — Chat + draft interactions
-- **Talk to AICOS**: 3 starter chips → curated persona-aware replies (`docs/CONTENT.md`); off-script input → the honest fallback. Smooth scroll, thinking state.
+- **Talk to AICOS**: in-page side panel with 3 starter chips → curated persona-aware replies (`docs/CONTENT.md`); off-script input → the honest provider-neutral fallback. Smooth scroll, thinking state.
 - Confirm all draft-approve/dismiss interactions from M2 feel finished.
 - **Done when:** chat demonstrates the four rules in conversation; nothing dead-ends.
 
@@ -34,8 +34,8 @@ Build in this order. After each milestone: `npm run build` (must pass), fix all 
 ## M6 — Product shells (thin, simulated, complete)
 - **Help / How AICOS works**: four rules + FAQ + "Replay tour".
 - **Request access / escalation modal**: from blind-spot items and off-limits rows; prefilled scope + note → "Send request" → confirmation → auto-close. Focus-trapped, Esc-closable.
-- **Connected sources (Settings)**: per-persona connector list with connected/available states; simulated toggles; the stated-assumption framing line.
-- **Bring your own AI model (Settings)**: optional key field; presence flips the generator/chat to live; clearly marked optional; key in `localStorage` only.
+- **Connected sources (Setup + Settings)**: per-persona connector list with connected/available states; simulated toggles; source choices reflected in sidebar and access counts.
+- **Model provider note (Settings)**: provider/model selection is backlog work; no real LLM calls in the prototype.
 - **Done when:** every shell opens, does its job, and closes cleanly; no dead buttons anywhere in the app.
 
 ## M7 — Polish
@@ -43,7 +43,7 @@ Build in this order. After each milestone: `npm run build` (must pass), fix all 
 - **Done when:** quality floor in `docs/DESIGN.md` is met; no console errors; looks intentional on a phone.
 
 ## M8 — README & ship
-- Write `README.md` per `docs/PRD.md` → "README requirements" (what's real/simulated/assumed table, BYO-AI instructions, AI tools used, two-month roadmap from `docs/CONTENT.md`, submission steps).
+- Write `README.md` per `docs/PRD.md` → "README requirements" (what's real/simulated/assumed table, model-provider note, AI tools used, two-month roadmap from `docs/CONTENT.md`, submission steps).
 - Verify `npm run build` clean and that the app runs with **no env vars**.
 - Print the final submission commands for the human:
   ```bash
