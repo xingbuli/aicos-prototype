@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   ChevronLeft,
   ChevronRight,
@@ -89,6 +90,7 @@ function App() {
   const [setupPersonaId, setSetupPersonaId] = useState("");
   const [showTour, setShowTour] = useState(false);
   const [tourIndex, setTourIndex] = useState(0);
+  const [tourHomeReturnKey, setTourHomeReturnKey] = useState(0);
 
   const persona = personas.find((item) => item.id === personaId);
   const setupPersona = personas.find((item) => item.id === setupPersonaId);
@@ -145,6 +147,7 @@ function App() {
   function finishTour() {
     if (persona) localStorage.setItem(`${STORAGE_KEYS.tourPrefix}${persona.id}`, "true");
     setShowTour(false);
+    setTourHomeReturnKey((current) => current + 1);
   }
 
   if (!persona && setupPersona) {
@@ -167,6 +170,7 @@ function App() {
       <Console
         persona={workspacePersona}
         tourStep={showTour ? TOUR_STEPS[tourIndex] : null}
+        tourHomeReturnKey={tourHomeReturnKey}
         onHelp={() => setModal({ type: "help" })}
         onSettings={() => setModal({ type: "settings" })}
         onSignOut={signOut}
@@ -214,8 +218,15 @@ function SignIn({ onEnter }) {
         </p>
       </section>
 
-      <section className="workspace-picker" aria-label="Choose a workspace to enter">
-        <p className="eyebrow">Choose a workspace to enter.</p>
+      <section className="workspace-picker" aria-label="Choose a sample workspace">
+        <div className="login-placeholder-copy">
+          <p className="eyebrow">Demo login placeholder</p>
+          <h2>Choose a sample workspace.</h2>
+          <p>
+            This screen stands in for real user authentication. Pick one sample leader to enter a
+            simulated workspace.
+          </p>
+        </div>
         <div className="workspace-cards">
           {personas.map((persona) => (
             <button
@@ -230,7 +241,7 @@ function SignIn({ onEnter }) {
                 </small>
               </span>
               <span className="card-action">
-                Continue as {persona.name.split(" ")[0]} <ArrowRight size={16} />
+                Enter sample workspace <ArrowRight size={16} />
               </span>
             </button>
           ))}
@@ -313,7 +324,15 @@ function SourceSetup({ persona, initialState, onBack, onContinue }) {
   );
 }
 
-function Console({ persona, tourStep, onHelp, onSettings, onSignOut, onRequestAccess }) {
+function Console({
+  persona,
+  tourStep,
+  tourHomeReturnKey,
+  onHelp,
+  onSettings,
+  onSignOut,
+  onRequestAccess,
+}) {
   const [objectives, setObjectives] = useState(persona.objectives);
   const [objectiveText, setObjectiveText] = useState(persona.objectivePrompt);
   const [objectiveError, setObjectiveError] = useState("");
@@ -368,6 +387,29 @@ function Console({ persona, tourStep, onHelp, onSettings, onSignOut, onRequestAc
     const nextView = TOUR_VIEW_BY_TARGET[tourStep?.target];
     if (nextView) setActiveView(nextView);
   }, [tourStep]);
+
+  useEffect(() => {
+    if (!tourHomeReturnKey) return undefined;
+
+    const frameIds = [];
+    const timerIds = [0, 120].map((delay) =>
+      window.setTimeout(() => {
+        setActiveView(VIEWS.home);
+        frameIds.push(
+          window.requestAnimationFrame(() => {
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+          }),
+        );
+      }, delay),
+    );
+
+    return () => {
+      timerIds.forEach((timerId) => window.clearTimeout(timerId));
+      frameIds.forEach((frameId) => window.cancelAnimationFrame(frameId));
+    };
+  }, [tourHomeReturnKey]);
 
   function notify(message) {
     setToast(message);
@@ -507,6 +549,7 @@ function Console({ persona, tourStep, onHelp, onSettings, onSignOut, onRequestAc
             onOpenNav={() => setMobileNavOpen(true)}
             onHelp={onHelp}
             onSettings={onSettings}
+            onSignOut={onSignOut}
           />
 
           <main className="console">
@@ -1168,7 +1211,38 @@ function ViewHeader({ eyebrow, title, body }) {
   );
 }
 
-function Topbar({ persona, onOpenNav, onHelp, onSettings }) {
+function Topbar({ persona, onOpenNav, onHelp, onSettings, onSignOut }) {
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!accountMenuOpen) return undefined;
+
+    function handlePointerDown(event) {
+      if (!accountMenuRef.current?.contains(event.target)) {
+        setAccountMenuOpen(false);
+      }
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setAccountMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [accountMenuOpen]);
+
+  function runAccountAction(action) {
+    setAccountMenuOpen(false);
+    action();
+  }
+
   return (
     <header className="topbar">
       <button className="mobile-menu" onClick={onOpenNav} aria-label="Open navigation">
@@ -1183,9 +1257,38 @@ function Topbar({ persona, onOpenNav, onHelp, onSettings }) {
         <button className="top-icon" aria-label="How AICOS works" onClick={onHelp}>
           <ShieldCheck size={16} />
         </button>
-        <button className="avatar-menu" aria-label={`${persona.name} settings`} onClick={onSettings}>
-          {persona.name.split(" ").map((part) => part[0]).join("").slice(0, 2)}
-        </button>
+        <div className="account-menu" ref={accountMenuRef}>
+          <button
+            className="avatar-menu"
+            aria-label={`${persona.name} account menu`}
+            aria-haspopup="menu"
+            aria-expanded={accountMenuOpen}
+            onClick={() => setAccountMenuOpen((open) => !open)}
+          >
+            <span>{persona.name.split(" ").map((part) => part[0]).join("").slice(0, 2)}</span>
+            <ChevronDown size={13} />
+          </button>
+          {accountMenuOpen && (
+            <div className="account-menu-panel" role="menu">
+              <div className="account-menu-head">
+                <strong>{persona.name}</strong>
+                <span>{persona.role}</span>
+              </div>
+              <button role="menuitem" onClick={() => runAccountAction(onSettings)}>
+                <Settings size={15} />
+                <span>Settings</span>
+              </button>
+              <button role="menuitem" onClick={() => runAccountAction(onHelp)}>
+                <HelpCircle size={15} />
+                <span>How it works</span>
+              </button>
+              <button className="danger" role="menuitem" onClick={() => runAccountAction(onSignOut)}>
+                <LogOut size={15} />
+                <span>Sign out</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
@@ -1209,7 +1312,7 @@ function BriefingSection({
   });
 
   return (
-    <section className="briefing-card rise" data-tour="briefing" id="briefing">
+    <section className="briefing-card rise" id="briefing">
       <div className="briefing-heading">
         <div>
           <h1>This week&apos;s briefing</h1>
@@ -1221,7 +1324,7 @@ function BriefingSection({
         </button>
       </div>
 
-      <div className="focus-brief">
+      <div className="focus-brief" data-tour="briefing">
         <div className="focus-copy">
           <span className="section-kicker">Start here</span>
           <h2>{priorityItem.title}</h2>
@@ -1885,7 +1988,7 @@ function GuidedTour({ step, index, total, onBack, onNext, onSkip }) {
       });
       document.querySelector(`[data-tour="${step.target}"]`)?.scrollIntoView({
         behavior: "smooth",
-        block: "center",
+        block: step.target === "objective" ? "start" : "center",
       });
     }, 80);
     return () => {
@@ -1895,25 +1998,35 @@ function GuidedTour({ step, index, total, onBack, onNext, onSkip }) {
   }, [step]);
 
   return (
-    <div className="tour-panel" role="dialog" aria-modal="true" aria-label="Guided walkthrough">
-      <div>
-        <p className="eyebrow">
-          Step {index + 1} of {total}
-        </p>
-        <h2>{step.title}</h2>
-        <p>{step.body}</p>
-      </div>
-      <div className="tour-actions">
-        <button className="btn btn-ghost" onClick={onSkip}>
-          Skip tour
-        </button>
-        <button className="icon-button" onClick={onBack} disabled={index === 0} aria-label="Back">
-          <ChevronLeft size={16} />
-        </button>
-        <button className="btn btn-primary" onClick={onNext}>
-          {index === total - 1 ? "Start using AICOS" : "Next"}
-          {index !== total - 1 && <ChevronRight size={16} />}
-        </button>
+    <div className="tour-stage" role="presentation">
+      <div className="tour-panel" role="dialog" aria-modal="true" aria-label="Guided walkthrough">
+        <div className="tour-step-indicator" aria-label={`Step ${index + 1} of ${total}`}>
+          {Array.from({ length: total }).map((_, stepIndex) => (
+            <span
+              className={stepIndex === index ? "active" : ""}
+              key={`tour-step-${stepIndex}`}
+            />
+          ))}
+        </div>
+        <div>
+          <p className="eyebrow">
+            Step {index + 1} of {total}
+          </p>
+          <h2>{step.title}</h2>
+          <p>{step.body}</p>
+        </div>
+        <div className="tour-actions">
+          <button className="btn btn-ghost" onClick={onSkip}>
+            Skip tour
+          </button>
+          <button className="icon-button" onClick={onBack} disabled={index === 0} aria-label="Back">
+            <ChevronLeft size={16} />
+          </button>
+          <button className="btn btn-primary" onClick={onNext}>
+            {index === total - 1 ? "Start using AICOS" : "Next"}
+            {index !== total - 1 && <ChevronRight size={16} />}
+          </button>
+        </div>
       </div>
     </div>
   );
