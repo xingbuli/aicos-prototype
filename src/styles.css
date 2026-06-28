@@ -1552,6 +1552,56 @@ a {
   gap: 0.7rem;
 }
 
+.prep-card-tags {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.action-type-badge {
+  width: max-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  border: 1px solid rgba(0, 140, 137, 0.22);
+  border-radius: 4px;
+  background: var(--teal-soft);
+  color: var(--teal-dark);
+  padding: 0.18rem 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.action-type-badge.deck_review {
+  border-color: rgba(37, 99, 235, 0.2);
+  background: #eff6ff;
+  color: var(--blue);
+}
+
+.action-type-badge.meeting_prep {
+  border-color: rgba(15, 118, 110, 0.2);
+  background: var(--teal-soft);
+  color: var(--teal-dark);
+}
+
+.action-type-badge.nudge_request {
+  border-color: var(--purple-soft);
+  background: #fbfaff;
+  color: var(--purple);
+}
+
+.action-type-badge.schedule_followup {
+  border-color: #f1d48c;
+  background: #fffaf0;
+  color: #9c6e12;
+}
+
+.action-type-badge.adoption_note {
+  border-color: rgba(15, 23, 42, 0.1);
+  background: #f7fafc;
+  color: var(--ink);
+}
+
 .prep-card h3 {
   margin: 0;
   font-size: 0.92rem;
@@ -1615,6 +1665,48 @@ a {
   color: var(--muted);
   font-size: 0.72rem;
   line-height: 1.44;
+}
+
+.editable-field {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.editable-field.compact {
+  margin-bottom: 0.55rem;
+}
+
+.editable-field input,
+.editable-field textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0.58rem 0.65rem;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 500;
+  line-height: 1.42;
+}
+
+.editable-field textarea {
+  resize: vertical;
+}
+
+.editable-field input:focus,
+.editable-field textarea:focus {
+  border-color: var(--teal);
+  outline: 2px solid rgba(0, 140, 137, 0.14);
+}
+
+.edit-modal-stack {
+  display: grid;
+  gap: 0.8rem;
 }
 
 .prep-confirmation {

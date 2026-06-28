@@ -40,10 +40,10 @@ On first entry to a workspace, a **skippable 5-step spotlight tour** that stages
 ### 3.3 Core loop (the home console)
 The main screen. Three things in a deliberate hierarchy:
 
-- **This week's briefing** (top, hero) — AICOS's prepared read: blockers, priority shifts, things to prepare for. Each item carries a confidence tag; actionable items include an **approvable draft** (Approve → "ready for you to send; AICOS won't send it for you"). At least one item per persona is a staged **blind-spot** moment.
+- **This week's briefing** (top, hero) — AICOS's prepared read: blockers, priority shifts, things to prepare for. Each item carries a confidence tag; actionable items include an **editable, approvable draft** (edit → approve → "ready for you to send; AICOS won't send it for you"). At least one item per persona is a staged **blind-spot** moment.
 - **Hand AICOS a goal** — the free-text objective box → simulated roadmap generator (always works) → roadmap appears in the board, marked "Generated · simulated preview". Optional live generation if BYO key set.
 - **Objectives & roadmaps board** — curated objectives broken into owned, dated, status-tracked tasks, each with a confidence tag; AICOS's "open questions / confirm before relying on this" surfaced under each objective.
-- **Prep Desk** — a simulated but visible work surface for deck review, meeting prep, and follow-up scheduling. It honors Alfredo's slide-deck review ask and Claudia's scheduling/follow-up ask without pretending the prototype can edit PowerPoint files or create calendar events. Every item is staged for approval, marked with confidence, and clear about blind spots.
+- **Prep Desk** — a simulated but visible action queue for deck review, meeting prep, nudge requests, 1:1 agenda prep, and follow-up scheduling. It honors Alfredo's slide-deck review ask and Claudia's scheduling/follow-up ask without pretending the prototype can edit PowerPoint files, send messages, read private 1:1s, or create calendar events. Every item is typed, editable where useful, staged for approval, marked with confidence, and clear about blind spots.
 
 Right rail: **What AICOS can see** (access panel, with off-limits items visible) and **Talk to AICOS** (chat).
 

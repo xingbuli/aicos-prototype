@@ -53,6 +53,14 @@ const CONFIDENCE_META = {
   unknown: { label: "Blind spot", color: "#6B675E", soft: "#EFEDE7", ring: true },
 };
 
+const ACTION_TYPE_META = {
+  deck_review: { label: "Deck Review", icon: FileText },
+  meeting_prep: { label: "Meeting Prep", icon: CalendarDays },
+  nudge_request: { label: "Nudge Request", icon: MessageSquare },
+  schedule_followup: { label: "Schedule Follow-up", icon: Clock3 },
+  adoption_note: { label: "Adoption Note", icon: UsersRound },
+};
+
 const STORAGE_KEYS = {
   persona: "aicos.persona",
   byoKey: "aicos.anthropicKey",
@@ -205,7 +213,10 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
   const [objectiveError, setObjectiveError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [draftStates, setDraftStates] = useState({});
+  const [draftEdits, setDraftEdits] = useState({});
   const [prepStates, setPrepStates] = useState({});
+  const [prepEdits, setPrepEdits] = useState({});
+  const [editModalItem, setEditModalItem] = useState(null);
   const [chatMessages, setChatMessages] = useState([
     {
       id: "hello",
@@ -224,7 +235,10 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
     setObjectiveText(persona.objectivePrompt);
     setObjectiveError("");
     setDraftStates({});
+    setDraftEdits({});
     setPrepStates({});
+    setPrepEdits({});
+    setEditModalItem(null);
     setChatInput("");
     setActiveView(VIEWS.home);
     setChatMessages([
@@ -300,8 +314,44 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
     setDraftStates((current) => ({ ...current, [itemId]: state }));
   }
 
+  function updateDraftEdit(itemId, patch) {
+    setDraftEdits((current) => ({
+      ...current,
+      [itemId]: {
+        ...current[itemId],
+        ...patch,
+      },
+    }));
+  }
+
+  function resetDraftEdit(itemId) {
+    setDraftEdits((current) => {
+      const next = { ...current };
+      delete next[itemId];
+      return next;
+    });
+  }
+
   function setPrepState(itemId, state) {
     setPrepStates((current) => ({ ...current, [itemId]: state }));
+  }
+
+  function updatePrepEdit(itemId, patch) {
+    setPrepEdits((current) => ({
+      ...current,
+      [itemId]: {
+        ...current[itemId],
+        ...patch,
+      },
+    }));
+  }
+
+  function resetPrepEdit(itemId) {
+    setPrepEdits((current) => {
+      const next = { ...current };
+      delete next[itemId];
+      return next;
+    });
   }
 
   async function sendChat(prompt) {
@@ -322,81 +372,99 @@ function Console({ persona, byoKey, tourStep, onHelp, onSettings, onSignOut, onR
   }
 
   return (
-    <div className={`app-shell ${mobileNavOpen ? "nav-open" : ""}`}>
-      <Sidebar
-        persona={persona}
-        activeView={activeView}
-        onNavigate={navigatePanel}
-        onHelp={onHelp}
-        onSettings={onSettings}
-        onSignOut={onSignOut}
-        onClose={() => setMobileNavOpen(false)}
-      />
-
-      <div className="workspace">
-        <Topbar
+    <>
+      <div className={`app-shell ${mobileNavOpen ? "nav-open" : ""}`}>
+        <Sidebar
           persona={persona}
-          onOpenNav={() => setMobileNavOpen(true)}
+          activeView={activeView}
+          onNavigate={navigatePanel}
           onHelp={onHelp}
           onSettings={onSettings}
+          onSignOut={onSignOut}
+          onClose={() => setMobileNavOpen(false)}
         />
 
-        <main className="console">
-          {activeView === VIEWS.home && (
-            <HomeView
-              persona={persona}
-              objectives={objectives}
-              chatMessages={chatMessages}
-              draftStates={draftStates}
-              onDraftState={setDraftState}
-              onRequestAccess={onRequestAccess}
-              onCopyBrief={copyBrief}
-              onOpenView={openView}
-            />
-          )}
+        <div className="workspace">
+          <Topbar
+            persona={persona}
+            onOpenNav={() => setMobileNavOpen(true)}
+            onHelp={onHelp}
+            onSettings={onSettings}
+          />
 
-          {activeView === VIEWS.roadmaps && (
-            <RoadmapsView
-              objectives={objectives}
-              value={objectiveText}
-              error={objectiveError}
-              isGenerating={isGenerating}
-              hasByoKey={Boolean(byoKey.trim())}
-              onChange={setObjectiveText}
-              onSubmit={submitObjective}
-            />
-          )}
+          <main className="console">
+            {activeView === VIEWS.home && (
+              <HomeView
+                persona={persona}
+                objectives={objectives}
+                chatMessages={chatMessages}
+                draftStates={draftStates}
+                draftEdits={draftEdits}
+                onDraftState={setDraftState}
+                onDraftEdit={updateDraftEdit}
+                onDraftReset={resetDraftEdit}
+                onRequestAccess={onRequestAccess}
+                onCopyBrief={copyBrief}
+                onOpenView={openView}
+              />
+            )}
 
-          {activeView === VIEWS.prep && (
-            <PrepDeskView
-              persona={persona}
-              prepStates={prepStates}
-              onPrepState={setPrepState}
-              onRequestAccess={onRequestAccess}
-            />
-          )}
+            {activeView === VIEWS.roadmaps && (
+              <RoadmapsView
+                objectives={objectives}
+                value={objectiveText}
+                error={objectiveError}
+                isGenerating={isGenerating}
+                hasByoKey={Boolean(byoKey.trim())}
+                onChange={setObjectiveText}
+                onSubmit={submitObjective}
+              />
+            )}
 
-          {activeView === VIEWS.access && (
-            <AccessView persona={persona} onRequestAccess={onRequestAccess} />
-          )}
+            {activeView === VIEWS.prep && (
+              <PrepDeskView
+                persona={persona}
+                prepStates={prepStates}
+                prepEdits={prepEdits}
+                onPrepState={setPrepState}
+                onPrepEdit={updatePrepEdit}
+                onPrepReset={resetPrepEdit}
+                onEditPrep={setEditModalItem}
+                onRequestAccess={onRequestAccess}
+              />
+            )}
 
-          {activeView === VIEWS.chat && (
-            <ChatView
-              messages={chatMessages}
-              input={chatInput}
-              isThinking={isThinking}
-              onInput={setChatInput}
-              onSend={sendChat}
-            />
+            {activeView === VIEWS.access && (
+              <AccessView persona={persona} onRequestAccess={onRequestAccess} />
+            )}
+
+            {activeView === VIEWS.chat && (
+              <ChatView
+                messages={chatMessages}
+                input={chatInput}
+                isThinking={isThinking}
+                onInput={setChatInput}
+                onSend={sendChat}
+              />
+            )}
+          </main>
+          {toast && (
+            <div className="toast" role="status" aria-live="polite">
+              {toast}
+            </div>
           )}
-        </main>
-        {toast && (
-          <div className="toast" role="status" aria-live="polite">
-            {toast}
-          </div>
-        )}
+        </div>
       </div>
-    </div>
+      {editModalItem && (
+        <PrepEditModal
+          item={editModalItem}
+          edit={getPrepEdit(editModalItem, prepEdits[editModalItem.id])}
+          onEdit={(patch) => updatePrepEdit(editModalItem.id, patch)}
+          onReset={() => resetPrepEdit(editModalItem.id)}
+          onClose={() => setEditModalItem(null)}
+        />
+        )}
+    </>
   );
 }
 
@@ -486,7 +554,10 @@ function HomeView({
   objectives,
   chatMessages,
   draftStates,
+  draftEdits,
   onDraftState,
+  onDraftEdit,
+  onDraftReset,
   onRequestAccess,
   onCopyBrief,
   onOpenView,
@@ -496,7 +567,10 @@ function HomeView({
       <BriefingSection
         persona={persona}
         draftStates={draftStates}
+        draftEdits={draftEdits}
         onDraftState={onDraftState}
+        onDraftEdit={onDraftEdit}
+        onDraftReset={onDraftReset}
         onRequestAccess={onRequestAccess}
         onCopyBrief={onCopyBrief}
       />
@@ -594,18 +668,27 @@ function RoadmapsView({
   );
 }
 
-function PrepDeskView({ persona, prepStates, onPrepState, onRequestAccess }) {
+function PrepDeskView({
+  persona,
+  prepStates,
+  prepEdits,
+  onPrepState,
+  onPrepEdit,
+  onPrepReset,
+  onEditPrep,
+  onRequestAccess,
+}) {
   return (
     <section className="view-page">
       <ViewHeader
         eyebrow="Prep Desk"
-        title="Review decks and schedule follow-through."
-        body="AICOS stages deck review notes, meeting prep, and follow-up scheduling for approval. In this prototype, these are simulated flows; nothing edits a deck or touches a calendar."
+        title="Stage the next leadership actions."
+        body="AICOS stages deck review, meeting prep, nudge requests, and follow-up scheduling for approval. In this prototype, these are simulated flows; nothing edits a deck, sends a message, or touches a calendar."
       />
       <section className="panel prep-desk">
         <div className="panel-heading">
           <div>
-            <h2><FileText size={16} /> Prepared work</h2>
+            <h2><Sparkles size={16} /> Action queue</h2>
             <div className="panel-subline">
               <span>{persona.prepDesk.summary}</span>
             </div>
@@ -618,7 +701,11 @@ function PrepDeskView({ persona, prepStates, onPrepState, onRequestAccess }) {
               item={item}
               key={item.id}
               state={prepStates[item.id] ?? "open"}
+              edit={getPrepEdit(item, prepEdits[item.id])}
               onResolve={() => onPrepState(item.id, "approved")}
+              onEdit={(patch) => onPrepEdit(item.id, patch)}
+              onReset={() => onPrepReset(item.id)}
+              onOpenEditor={() => onEditPrep(item)}
               onRequestAccess={onRequestAccess}
             />
           ))}
@@ -628,15 +715,22 @@ function PrepDeskView({ persona, prepStates, onPrepState, onRequestAccess }) {
   );
 }
 
-function PrepDeskCard({ item, state, onResolve, onRequestAccess }) {
+function PrepDeskCard({ item, state, edit, onResolve, onEdit, onReset, onOpenEditor, onRequestAccess }) {
   const isResolved = state !== "open";
+  const usesInlineDraft = item.actionType === "nudge_request";
+  const usesInlineSchedule = item.actionType === "schedule_followup";
+  const usesModalEditor = ["meeting_prep", "deck_review"].includes(item.actionType);
+  const details = splitEditLines(edit.detailsText);
 
   return (
     <article className={`prep-card ${isResolved ? "resolved" : ""}`}>
       <div className="prep-card-head">
-        <div className="item-tags">
-          <KindBadge kind={item.kind} />
-          <ConfidenceTag confidence={item.confidence} />
+        <div className="prep-card-tags">
+          <ActionTypeBadge actionType={item.actionType} />
+          <div className="item-tags">
+            <KindBadge kind={item.kind} />
+            <ConfidenceTag confidence={item.confidence} />
+          </div>
         </div>
         {isResolved && (
           <span className="prep-resolved">
@@ -648,18 +742,37 @@ function PrepDeskCard({ item, state, onResolve, onRequestAccess }) {
       <h3>{item.title}</h3>
       <p>{item.body}</p>
 
-      {item.details?.length > 0 && (
+      {details.length > 0 && (
         <ul className="prep-detail-list">
-          {item.details.map((detail) => (
+          {details.map((detail) => (
             <li key={detail}>{detail}</li>
           ))}
         </ul>
       )}
 
-      {item.draft && (
+      {usesInlineSchedule && !isResolved && (
+        <label className="editable-field">
+          Editable schedule notes
+          <textarea
+            rows={4}
+            value={edit.detailsText}
+            onChange={(event) => onEdit({ detailsText: event.target.value })}
+          />
+        </label>
+      )}
+
+      {item.draft && usesInlineDraft && !isResolved && (
+        <EditableDraftBody
+          label={item.draft.label}
+          value={edit.draftBody}
+          onChange={(value) => onEdit({ draftBody: value })}
+        />
+      )}
+
+      {item.draft && (!usesInlineDraft || isResolved) && (
         <div className="prep-draft">
           <span>{item.draft.label}</span>
-          <p>{item.draft.body}</p>
+          <p>{edit.draftBody}</p>
         </div>
       )}
 
@@ -674,6 +787,16 @@ function PrepDeskCard({ item, state, onResolve, onRequestAccess }) {
             <Check size={15} /> {item.actionLabel}
           </button>
         )}
+        {!isResolved && usesModalEditor && (
+          <button className="btn btn-ghost" onClick={onOpenEditor}>
+            {item.actionType === "deck_review" ? "Edit checklist" : "Edit agenda"}
+          </button>
+        )}
+        {!isResolved && (item.draft || usesInlineSchedule || usesModalEditor) && (
+          <button className="tiny-link" onClick={onReset}>
+            Reset edits
+          </button>
+        )}
         {item.secondaryAction && (
           <button className="tiny-link" onClick={() => onRequestAccess(item.secondaryAction.scope)}>
             {item.secondaryAction.label}
@@ -682,6 +805,108 @@ function PrepDeskCard({ item, state, onResolve, onRequestAccess }) {
       </div>
     </article>
   );
+}
+
+function ActionTypeBadge({ actionType }) {
+  const meta = ACTION_TYPE_META[actionType] ?? { label: "Action", icon: Sparkles };
+  const Icon = meta.icon;
+
+  return (
+    <span className={`action-type-badge ${actionType ?? "default"}`}>
+      <Icon size={13} />
+      {meta.label}
+    </span>
+  );
+}
+
+function EditableDraftBody({ label, value, onChange }) {
+  return (
+    <label className="editable-field">
+      {label}
+      <textarea rows={5} value={value} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  );
+}
+
+function PrepEditModal({ item, edit, onEdit, onReset, onClose }) {
+  const isDeck = item.actionType === "deck_review";
+  const isOneOnOne = item.id === "alex-privacy-one-on-one";
+  const detailsLabel = isDeck ? "Review checklist" : isOneOnOne ? "1:1 agenda bullets" : "Agenda bullets";
+  const briefLabel = isDeck ? "Review brief" : isOneOnOne ? "1:1 agenda shell" : "Prep brief";
+
+  return (
+    <Modal title={isDeck ? "Edit checklist" : "Edit agenda"} onClose={onClose} size="wide">
+      <p className="modal-intro">
+        Edits stay in this simulated workspace. AICOS stages your version for approval; it does not
+        update decks, calendars, messages, or private 1:1 notes.
+      </p>
+      <div className="edit-modal-stack">
+        <label className="editable-field">
+          Meeting goal
+          <input value={edit.goal} onChange={(event) => onEdit({ goal: event.target.value })} />
+        </label>
+        <label className="editable-field">
+          {detailsLabel}
+          <textarea
+            rows={7}
+            value={edit.detailsText}
+            onChange={(event) => onEdit({ detailsText: event.target.value })}
+          />
+        </label>
+        {item.draft && (
+          <label className="editable-field">
+            {briefLabel}
+            <textarea
+              rows={5}
+              value={edit.draftBody}
+              onChange={(event) => onEdit({ draftBody: event.target.value })}
+            />
+          </label>
+        )}
+        {(item.editFields?.followUpNote || isOneOnOne) && (
+          <label className="editable-field">
+            Follow-up note
+            <textarea
+              rows={4}
+              value={edit.followUpNote}
+              onChange={(event) => onEdit({ followUpNote: event.target.value })}
+            />
+          </label>
+        )}
+      </div>
+      <div className="modal-actions">
+        <button className="btn btn-primary" onClick={onClose}>
+          Save edits
+        </button>
+        <button className="btn btn-ghost" onClick={onReset}>
+          Reset edits
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+function getDraftEdit(item, edit) {
+  return {
+    subject: edit?.subject ?? item.draft?.subject ?? item.title,
+    body: edit?.body ?? item.draft?.body ?? item.body,
+  };
+}
+
+function getPrepEdit(item, edit) {
+  return {
+    goal: edit?.goal ?? item.editFields?.goal ?? item.title,
+    detailsText: edit?.detailsText ?? (item.details ?? []).join("\n"),
+    draftBody: edit?.draftBody ?? item.draft?.body ?? "",
+    followUpNote: edit?.followUpNote ?? item.editFields?.followUpNote ?? "",
+  };
+}
+
+function splitEditLines(value) {
+  return value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 }
 
 function AccessView({ persona, onRequestAccess }) {
@@ -753,7 +978,16 @@ function Topbar({ persona, onOpenNav, onHelp, onSettings }) {
   );
 }
 
-function BriefingSection({ persona, draftStates, onDraftState, onRequestAccess, onCopyBrief }) {
+function BriefingSection({
+  persona,
+  draftStates,
+  draftEdits,
+  onDraftState,
+  onDraftEdit,
+  onDraftReset,
+  onRequestAccess,
+  onCopyBrief,
+}) {
   const priorityItem = persona.briefing.items.find((item) => item.kind === "blocker") ?? persona.briefing.items[0];
 
   return (
@@ -821,6 +1055,9 @@ function BriefingSection({ persona, draftStates, onDraftState, onRequestAccess, 
               <DraftCard
                 item={item}
                 state={draftStates[item.id] ?? "open"}
+                edit={getDraftEdit(item, draftEdits[item.id])}
+                onEdit={(patch) => onDraftEdit(item.id, patch)}
+                onReset={() => onDraftReset(item.id)}
                 onApprove={() => onDraftState(item.id, "approved")}
                 onDismiss={() => onDraftState(item.id, "dismissed")}
                 onRequestAccess={onRequestAccess}
@@ -833,13 +1070,13 @@ function BriefingSection({ persona, draftStates, onDraftState, onRequestAccess, 
   );
 }
 
-function DraftCard({ item, state, onApprove, onDismiss, onRequestAccess }) {
+function DraftCard({ item, state, edit, onEdit, onReset, onApprove, onDismiss, onRequestAccess }) {
   if (state !== "open") {
     return (
       <div className="draft-card resolved">
         <Check size={15} />
         {state === "approved"
-          ? "Draft approved. AICOS will wait for you to send it."
+          ? "Edited draft staged. AICOS will wait for you to send it."
           : "Draft dismissed. AICOS will leave it untouched."}
       </div>
     );
@@ -849,16 +1086,31 @@ function DraftCard({ item, state, onApprove, onDismiss, onRequestAccess }) {
     <article className="draft-card" data-tour="draft">
       <div className="draft-label">
         <Sparkles size={14} />
-        Draft ready
+        Editable draft
       </div>
-      <strong>{item.draft?.subject ?? item.title}</strong>
-      <p>{item.draft?.body ?? item.body}</p>
+      {item.draft?.subject && (
+        <label className="editable-field compact">
+          Subject
+          <input
+            value={edit.subject}
+            onChange={(event) => onEdit({ subject: event.target.value })}
+          />
+        </label>
+      )}
+      <EditableDraftBody
+        label={item.draft?.type ? `${item.draft.type} body` : "Draft body"}
+        value={edit.body}
+        onChange={(value) => onEdit({ body: value })}
+      />
       <div className="button-row">
         <button className="btn btn-primary" onClick={onApprove}>
           <Check size={15} /> Approve
         </button>
         <button className="btn btn-ghost" onClick={onDismiss}>
           Dismiss
+        </button>
+        <button className="tiny-link" onClick={onReset}>
+          Reset draft
         </button>
         {item.secondaryAction && (
           <button className="tiny-link" onClick={() => onRequestAccess(item.secondaryAction.scope)}>

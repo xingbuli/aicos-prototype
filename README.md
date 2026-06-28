@@ -9,8 +9,8 @@ Open the deployed URL, choose one of the three workspaces, and take the guided t
 1. Sign in by choosing Claudia, Alfredo, or Alex.
 2. Follow the 5-step tour.
 3. Read the weekly briefing.
-4. Approve a draft.
-5. Open Prep Desk to review staged deck prep and scheduling work.
+4. Edit and approve a draft.
+5. Open Prep Desk to review staged deck prep, meeting prep, 1:1 agenda prep, nudge requests, and scheduling work.
 6. Generate a roadmap from your own objective.
 7. Request access from a blind spot or off-limits source.
 
@@ -18,10 +18,10 @@ Open the deployed URL, choose one of the three workspaces, and take the guided t
 
 | Area | Status | Notes |
 |---|---|---|
-| Product workflow | Real prototype UI | Workspace selection, guided tour, briefing, Prep Desk, draft approval, roadmap generation, chat, settings, help, and request-access flows are interactive. |
+| Product workflow | Real prototype UI | Workspace selection, guided tour, briefing, Prep Desk action queue, editable draft approval, roadmap generation, chat, settings, help, and request-access flows are interactive. |
 | Data | Simulated | All workspace content is curated, pre-written demo content from `docs/CONTENT.md`. No real AES or user data is used. |
 | Integrations | Assumed placeholders | Slack, Teams, Jira, Microsoft Loop, Power BI, Calendar, Email, OKR tracker, and shared docs are represented as simulated connected sources because the real evaluator stack is unknown. |
-| Deck review and scheduling | Simulated prototype flow | Prep Desk stages slide-review notes, meeting prep, calendar holds, and reminder drafts for approval. It does not parse PowerPoint files, edit documents, or create real calendar events. |
+| Prep Desk actions | Simulated prototype flow | Prep Desk stages deck review, meeting prep, privacy-safe 1:1 agenda shells, nudge requests, calendar holds, and reminder drafts for approval. Edits are local browser state; it does not parse PowerPoint files, edit documents, read private 1:1s, send messages, or create real calendar events. |
 | Team adoption | Product framing | Claudia's team-mode and role-impact concerns are acknowledged in Prep Desk. Real multi-user collaboration and onboarding workflows are future MVP work. |
 | Authentication | Simulated | Choosing a workspace is persona selection, not real auth. |
 | Sending messages | Simulated | AICOS drafts actions and confirms approval, but never sends anything. |

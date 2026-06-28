@@ -214,6 +214,7 @@ export const personas = [
       items: [
         {
           id: "claudia-status-followup",
+          actionType: "schedule_followup",
           kind: "prep",
           confidence: "unknown",
           title: "Schedule the initiative-lead status sweep.",
@@ -237,7 +238,50 @@ export const personas = [
           },
         },
         {
+          id: "claudia-status-meeting-prep",
+          actionType: "meeting_prep",
+          kind: "prep",
+          confidence: "inferred",
+          title: "Prep the status-sweep agenda.",
+          body:
+            "I drafted a short agenda that keeps the initiative-lead sweep focused on blockers, external-facing updates, and who owns the next Loop refresh.",
+          details: [
+            "Opening question: has status collection moved outside Loop?",
+            "Round-robin: one-line status, blocker, and next date from each initiative lead.",
+            "Close: confirm who updates the newsroom source of truth by Friday.",
+          ],
+          draft: {
+            label: "Meeting prep brief",
+            body:
+              "Use the sweep to confirm whether the work moved off Loop, collect each initiative lead's status/blocker/update, and assign one owner to refresh the newsroom source by Friday.",
+          },
+          actionLabel: "Approve prep",
+          resolvedLabel: "Meeting prep approved. AICOS will keep the agenda staged for Claudia.",
+        },
+        {
+          id: "claudia-style-nudge",
+          actionType: "nudge_request",
+          kind: "blocker",
+          confidence: "verified",
+          title: "Draft nudge for Corporate Comms sign-off.",
+          body:
+            "The style-guide sign-off is still the critical-path blocker. I prepared a short nudge Claudia can approve before it goes to Corporate Comms.",
+          details: [
+            "Recipient: Corporate Comms.",
+            "Ask: confirm sign-off by Thursday or identify what is outstanding.",
+            "Tone: direct, low-friction, and framed around moving the engagement program forward.",
+          ],
+          draft: {
+            label: "Nudge draft",
+            body:
+              "Hi — the unified engagement program is ready to move except for style-guide alignment. Could you confirm sign-off by Thursday, or flag what's outstanding? Happy to jump on a 15-minute call if that's faster.",
+          },
+          actionLabel: "Stage nudge",
+          resolvedLabel: "Nudge staged. AICOS will wait for Claudia before anything is sent.",
+        },
+        {
           id: "claudia-team-adoption",
+          actionType: "adoption_note",
           kind: "attention",
           confidence: "inferred",
           title: "Adoption note: support the team, don't replace the team.",
@@ -404,6 +448,7 @@ export const personas = [
       items: [
         {
           id: "alfredo-h2-deck",
+          actionType: "deck_review",
           kind: "prep",
           confidence: "unknown",
           title: "Review the H2 market update deck.",
@@ -428,6 +473,7 @@ export const personas = [
         },
         {
           id: "alfredo-followup",
+          actionType: "schedule_followup",
           kind: "attention",
           confidence: "inferred",
           title: "Stage a 30-minute regulatory follow-up.",
@@ -439,6 +485,48 @@ export const personas = [
           ],
           actionLabel: "Stage schedule",
           resolvedLabel: "Schedule staged. AICOS will wait for Alfredo to send the invite.",
+        },
+        {
+          id: "alfredo-regulatory-meeting-prep",
+          actionType: "meeting_prep",
+          kind: "prep",
+          confidence: "verified",
+          title: "Prep the Region B regulatory follow-up.",
+          body:
+            "I prepared the agenda Alfredo needs for the Region B market lead so the meeting produces a concrete escalation path, not another status check.",
+          details: [
+            "Confirm the latest regulator response and expected decision date.",
+            "Name the escalation owner if no response lands this week.",
+            "Decide when Power BI will be updated so the H2 view is current.",
+          ],
+          draft: {
+            label: "Meeting prep brief",
+            body:
+              "Use this follow-up to leave with three decisions: regulator-response status, escalation owner, and the date the market lead will refresh Power BI.",
+          },
+          actionLabel: "Approve prep",
+          resolvedLabel: "Meeting prep approved. AICOS will keep the agenda staged for Alfredo.",
+        },
+        {
+          id: "alfredo-region-b-nudge",
+          actionType: "nudge_request",
+          kind: "blocker",
+          confidence: "verified",
+          title: "Draft nudge for the Region B market lead.",
+          body:
+            "The regulatory delay is still the highest-leverage issue. I drafted a nudge that asks for status and an escalation path without over-reporting the risk.",
+          details: [
+            "Recipient: Region B market lead.",
+            "Ask: regulator response status and escalation path today.",
+            "Guardrail: references only verified blocker status from the team meeting.",
+          ],
+          draft: {
+            label: "Nudge draft",
+            body:
+              "Where do we stand on the regulator response? If we're still waiting, let's line up an escalation path today so this doesn't slip into next month's numbers.",
+          },
+          actionLabel: "Stage nudge",
+          resolvedLabel: "Nudge staged. AICOS will wait for Alfredo before anything is sent.",
         },
       ],
     },
@@ -576,6 +664,7 @@ export const personas = [
       items: [
         {
           id: "alex-monthly-deck",
+          actionType: "deck_review",
           kind: "prep",
           confidence: "verified",
           title: "Prep the monthly review deck.",
@@ -596,6 +685,7 @@ export const personas = [
         },
         {
           id: "alex-review-block",
+          actionType: "schedule_followup",
           kind: "prep",
           confidence: "inferred",
           title: "Schedule the 30-minute deck review block.",
@@ -608,6 +698,74 @@ export const personas = [
           ],
           actionLabel: "Stage schedule",
           resolvedLabel: "Schedule staged. AICOS will wait for Alex before creating the calendar hold.",
+        },
+        {
+          id: "alex-priority-meeting-prep",
+          actionType: "meeting_prep",
+          kind: "prep",
+          confidence: "inferred",
+          title: "Prep the Data/Platform priority-confirmation meeting.",
+          body:
+            "I prepared a five-minute agenda to test whether the Jira overlap is a real conflict before Alex treats it as a blocker.",
+          details: [
+            "Open with the exact two Jira tickets that appear to collide.",
+            "Ask each lead whether the capacity conflict is real or just a tracking artifact.",
+            "End with the milestone-lock owner and the source AICOS should treat as current.",
+          ],
+          draft: {
+            label: "Meeting prep brief",
+            body:
+              "Confirm whether the Data/Platform sprint overlap is real, decide which work takes priority if it is, and identify the source AICOS should use before locking milestones.",
+          },
+          actionLabel: "Approve prep",
+          resolvedLabel: "Meeting prep approved. AICOS will keep the agenda staged for Alex.",
+        },
+        {
+          id: "alex-privacy-one-on-one",
+          actionType: "meeting_prep",
+          kind: "prep",
+          confidence: "unknown",
+          title: "Prep privacy-safe 1:1 agenda.",
+          body:
+            "AICOS does not read Alex's 1:1 recordings, private notes, or conversation history. It can stage an agenda shell that Alex edits with the context he wants to bring.",
+          details: [
+            "Goal: create a lightweight agenda without pulling private 1:1 content.",
+            "Agenda shell: wins, blockers, commitments Alex wants to confirm, and anything that should stay out of systems.",
+            "Follow-up note: only log outcomes Alex explicitly chooses to share.",
+          ],
+          draft: {
+            label: "1:1 agenda shell",
+            body:
+              "Agenda: 1) What changed since our last check-in? 2) Any blocker I can remove? 3) What should stay private or off-system? 4) What follow-up, if any, should I log after this conversation?",
+          },
+          editFields: {
+            goal: "Hold a useful 1:1 without asking AICOS to infer private context.",
+            followUpNote:
+              "After the conversation, Alex chooses whether any action item should be logged. AICOS does not infer outcomes from private 1:1s.",
+          },
+          actionLabel: "Approve agenda",
+          resolvedLabel: "1:1 agenda approved. AICOS will keep the edited shell staged for Alex.",
+        },
+        {
+          id: "alex-priority-nudge",
+          actionType: "nudge_request",
+          kind: "blocker",
+          confidence: "inferred",
+          title: "Draft nudge for Data and Platform leads.",
+          body:
+            "Because the conflict is inferred, the nudge asks for confirmation instead of treating the overlap as settled fact.",
+          details: [
+            "Recipients: Data lead and Platform lead.",
+            "Ask: confirm whether the same-sprint overlap is a real priority conflict.",
+            "Guardrail: labels the issue as inferred from Jira, not verified.",
+          ],
+          draft: {
+            label: "Nudge draft",
+            body:
+              "Two tickets look like they're competing for the same sprint capacity. Can we confirm whether that's a real conflict and, if so, which takes priority? Don't want it to stall the milestone lock.",
+          },
+          actionLabel: "Stage nudge",
+          resolvedLabel: "Nudge staged. AICOS will wait for Alex before anything is sent.",
         },
       ],
     },
