@@ -82,17 +82,3 @@ npm run lint
 ```
 
 This prototype is a Vite/React app. It deploys to Vercel with no required environment variables.
-
-## Submission
-
-This repo is currently on the `master` branch. The final reply should include the live deployed URL and the tagged GitHub version:
-
-- Tagged version: https://github.com/xingbuli/aicos-prototype/tree/v1-submission
-
-```bash
-git add -A
-git commit -m "AICOS v1 submission"
-git tag -f v1-submission
-git push origin master
-git push --force origin v1-submission
-```
